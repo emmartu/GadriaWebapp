@@ -17,8 +17,8 @@ import it.mountaineering.gadria.ring.memory.util.PropertiesManager;
 public class VlcLauncherScheduledTask extends TimerTask {
 
 	private static final java.util.logging.Logger log = Logger.getLogger(VlcLauncherScheduledTask.class.getName());
-	private static final String VLC_VIDEO_RECORDER_BAT = "VlcVideoRecorder.bat";
-	private static DiskSpaceManager diskSPaceManager;
+	private static final String VLC_VIDEO_RECORDER_BAT = PropertiesManager.getInstallationPath()+"VlcVideoRecorder.bat";
+	public static DiskSpaceManager diskSPaceManager;
 	
 	{
 		diskSPaceManager = new DiskSpaceManager(PropertiesManager.getVideoAbsoluteStorageFolder(), PropertiesManager.getVideoMaxDiskSpace());

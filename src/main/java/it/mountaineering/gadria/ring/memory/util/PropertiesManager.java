@@ -28,6 +28,7 @@ public class PropertiesManager {
 
 	private static final String CONFIG_PROPERTIES = "config.properties";
 	private static final String VIDEO_ABSOLUTE_STORAGE_FOLDER = "VideoAbsoluteStorageFolder";
+	private static final String FREEZED_VIDEO_ABSOLUTE_STORAGE_FOLDER = "FreezedVideoAbsoluteStorageFolder";
 	private static final String PICTURE_ABSOLUTE_STORAGE_FOLDER = "PictureAbsoluteStorageFolder";
 	private static final String VIDEO_MAX_DISK_SPACE = "VideoMaxDiskSpace";
 	private static final String PICTURE_MAX_DISK_SPACE = "PictureMaxDiskSpace";
@@ -54,23 +55,24 @@ public class PropertiesManager {
 
 	private static Properties prop = new Properties();
 	private static InputStream input = null;
+	private static String installationPath = "";
 
-	//static {
-	//	try {
-	//		input = new FileInputStream(CONFIG_PROPERTIES);
-	//		prop.load(input);
-	//	} catch (IOException ex) {
-	//		ex.printStackTrace();
-	//	} finally {
-	//		if (input != null) {
-	//			try {
-	//				input.close();
-	//			} catch (IOException e) {
-	//				e.printStackTrace();
-	//			}
-	//		}
-	//	}
-	//}
+	// static {
+	// try {
+	// input = new FileInputStream(CONFIG_PROPERTIES);
+	// prop.load(input);
+	// } catch (IOException ex) {
+	// ex.printStackTrace();
+	// } finally {
+	// if (input != null) {
+	// try {
+	// input.close();
+	// } catch (IOException e) {
+	// e.printStackTrace();
+	// }
+	// }
+	// }
+	// }
 
 	protected static void setConfigFile(String configFile) {
 		try {
@@ -92,7 +94,8 @@ public class PropertiesManager {
 
 	public static void setConfigFilePath(String installationPath) {
 		try {
-			input = new FileInputStream(installationPath+CONFIG_PROPERTIES);
+			setInstallationPath(installationPath);
+			input = new FileInputStream(installationPath + CONFIG_PROPERTIES);
 			prop.clear();
 			prop.load(input);
 		} catch (IOException ex) {
@@ -126,6 +129,10 @@ public class PropertiesManager {
 		String videoAbsoluteStorageFolder = getVideoAbsoluteStorageFolderFromConfigProperties();
 		log.info("VideoAbsoluteStorageFolder: " + videoAbsoluteStorageFolder);
 		propertiesMap.put(VIDEO_ABSOLUTE_STORAGE_FOLDER, videoAbsoluteStorageFolder);
+
+		String freezedVideoAbsoluteStorageFolder = getFreezedVideoAbsoluteStorageFolderFromConfigProperties();
+		log.info("FreezedVideoAbsoluteStorageFolder: " + freezedVideoAbsoluteStorageFolder);
+		propertiesMap.put(FREEZED_VIDEO_ABSOLUTE_STORAGE_FOLDER, freezedVideoAbsoluteStorageFolder);
 
 		String pictureAbsoluteStorageFolder = getPictureAbsoluteStorageFolderFromConfigProperties();
 		log.info("PictureAbsoluteStorageFolder: " + pictureAbsoluteStorageFolder);
@@ -176,7 +183,7 @@ public class PropertiesManager {
 			}
 		}
 
-		if(!isStartAllowed()) {
+		if (!isStartAllowed()) {
 			log.severe("error occured reading webcam properties on each of the enabled webcams");
 			throw new PropertiesException("Cannot Read Properties correctly from each Webcams");
 		}
@@ -186,11 +193,11 @@ public class PropertiesManager {
 
 	private static boolean isStartAllowed() {
 		for (String webcamName : enabledWebcamPropertiesMap.keySet()) {
-			if (!(webcamErrorMap.get(webcamName)!=null && webcamErrorMap.get(webcamName)== true)) {
+			if (!(webcamErrorMap.get(webcamName) != null && webcamErrorMap.get(webcamName) == true)) {
 				return true;
 			}
 		}
-		
+
 		return false;
 	}
 
@@ -248,6 +255,22 @@ public class PropertiesManager {
 		return storageFolder;
 	}
 
+	protected static String getFreezedVideoAbsoluteStorageFolderFromConfigProperties() throws PropertiesException {
+		String storageFolder = "";
+
+		storageFolder = getStringPropertyByName(FREEZED_VIDEO_ABSOLUTE_STORAGE_FOLDER);
+
+		File storageDirectory = new File(storageFolder);
+
+		if (!storageDirectory.exists() || !storageDirectory.isDirectory()) {
+			throw new PropertiesException(
+					"VideoAbsoluteStorageFolder property cannot access Directory " + storageFolder);
+		}
+
+		return storageFolder;
+	}
+
+
 	private static String getPictureAbsoluteStorageFolderFromConfigProperties() throws PropertiesException {
 		String storageFolder = "";
 
@@ -267,9 +290,12 @@ public class PropertiesManager {
 		return propertiesMap.get(VIDEOLAN_EXE_PATH);
 	}
 
-
 	public static String getVideoAbsoluteStorageFolder() {
 		return propertiesMap.get(VIDEO_ABSOLUTE_STORAGE_FOLDER);
+	}
+
+	public static String getFreezedVideoAbsoluteStorageFolder() {
+		return propertiesMap.get(FREEZED_VIDEO_ABSOLUTE_STORAGE_FOLDER);
 	}
 
 	public static String getPictureAbsoluteStorageFolder() {
@@ -301,7 +327,6 @@ public class PropertiesManager {
 
 		return diskSpace;
 	}
-
 
 	public static Long getVideoMaxDiskSpace() {
 		String videoMaxDiskSpaceStr = propertiesMap.get(VIDEO_MAX_DISK_SPACE);
@@ -396,7 +421,8 @@ public class PropertiesManager {
 
 		enabledStr = prop.getProperty(PICTURE_CAPTURE_ENABLED);
 		if (enabledStr == null || enabledStr.equalsIgnoreCase("")) {
-			throw new WebcamPropertyIDException("Cannot Read Property " + PICTURE_CAPTURE_ENABLED + ", property is null");
+			throw new WebcamPropertyIDException(
+					"Cannot Read Property " + PICTURE_CAPTURE_ENABLED + ", property is null");
 		}
 
 		if (!isValidBooleanString(enabledStr)) {
@@ -413,7 +439,6 @@ public class PropertiesManager {
 
 		return pictureCaptureEnabled;
 	}
-
 
 	private static String getVideoCaptureEnabledFromConfigProperties() throws WebcamPropertyIDException {
 		String enabledStr;
@@ -505,6 +530,14 @@ public class PropertiesManager {
 		return webcamProperty;
 	}
 
+	public static String getInstallationPath() {
+		return installationPath;
+	}
+
+	public static void setInstallationPath(String installationPath) {
+		PropertiesManager.installationPath = installationPath;
+	}
+
 	private static boolean isIPOnline(String webcamIP) {
 
 		if (PingIp.isPingReachable(webcamIP)) {
@@ -529,5 +562,4 @@ public class PropertiesManager {
 	public static void setCheckIp(boolean checkIp) {
 		PropertiesManager.checkIp = checkIp;
 	}
-
 }

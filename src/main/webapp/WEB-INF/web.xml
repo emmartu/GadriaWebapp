@@ -16,7 +16,7 @@
 
 	<context-param> 
 	    <param-name>InstallationPath</param-name> 
-	    <param-value>C:\Users\Lele\Documents\LavoroWebCamMobotix\</param-value> 
+	    <param-value>C:\Users\Lele\Documents\LavoroWebCamMobotix\TEST\</param-value> 
 	</context-param> 
 
 	<listener>

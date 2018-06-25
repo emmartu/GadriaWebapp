@@ -3,15 +3,15 @@ package it.mountaineering.gadria.main;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
-import it.mountaineering.gadria.ring.memory.main.Main;
+import it.mountaineering.gadria.ring.memory.main.RingMemoryMain;
 
 public class GadriaMonitoringMain implements ServletContextListener {
 
-	Main ringMemoryMain;
+	public static RingMemoryMain ringMemoryMain;
 	public static String installationPath = "";
 	
 	public GadriaMonitoringMain() {
-		ringMemoryMain = new Main();
+		ringMemoryMain = new RingMemoryMain();
 	}
 
 	@Override
@@ -24,7 +24,7 @@ public class GadriaMonitoringMain implements ServletContextListener {
 
 	@Override
 	public void contextDestroyed(ServletContextEvent sce) {
-		// TODO Auto-generated method stub
-		
+		ringMemoryMain.vlcTimer.cancel();
+		ringMemoryMain.pictureTakerTimer.cancel();		
 	}
 }

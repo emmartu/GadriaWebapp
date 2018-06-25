@@ -14,9 +14,9 @@ import it.mountaineering.gadria.ring.memory.scheduled.task.VlcLauncherScheduledT
 import it.mountaineering.gadria.ring.memory.util.PropertiesManager;
 
 
-public class Main {
+public class RingMemoryMain {
 
-	private static final java.util.logging.Logger log = Logger.getLogger(Main.class.getName());
+	private static final java.util.logging.Logger log = Logger.getLogger(RingMemoryMain.class.getName());
 	private static final String LOGGING_PROPERTIES = "logging.properties";
 
 	private static final Object _START = "start";
@@ -45,12 +45,12 @@ public class Main {
         if(!stop) {
         	installationPath = args[0]+_CONF;
 			log.info("Service is starting");
-			Main main = new Main();
+			RingMemoryMain main = new RingMemoryMain();
 			try {
 				main.setUpLogger();
 			} catch (SecurityException se) {
 	        	log.info("problem encuntered reading properties file "+se.getMessage());
-	        	Main.stop(new String[] {});
+	        	RingMemoryMain.stop(new String[] {});
 				return;
 			} catch (FileNotFoundException e) {
 	        	log.info("problem encuntered reading properties file "+e.getMessage());
@@ -64,7 +64,7 @@ public class Main {
 				main.setupProperties();
 			} catch (PropertiesException e) {
 				log.severe(e.getMessage()+" **** the application ecountered a properties exception *** ");
-				Main.stop(new String[] {});
+				RingMemoryMain.stop(new String[] {});
 				return;
 			}
 	

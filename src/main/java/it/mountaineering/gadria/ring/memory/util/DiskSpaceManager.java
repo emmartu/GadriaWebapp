@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -71,6 +72,44 @@ public class DiskSpaceManager {
 		}
 	}
 
+	public void freezeFilesFromDateToDateFromMemory(Date fromDateTime, Date toDateTime) {
+		log.fine("Delete Files FromDateTime: "+fromDateTime.toString()+" toDateTime: "+toDateTime.toString()+" From Memory");
+
+		Collection<Long> unsortedEpochList = diskSpaceProperties.getFileMap().keySet();
+		List<Long> sorted = asSortedList(unsortedEpochList);
+		
+		int fromKey = 0;
+		int toKey = 0;
+		
+		Long fromLong = fromDateTime.getTime();
+		Long toLong = toDateTime.getTime();
+		
+		for (int i = 0; i < sorted.size(); i++) {
+			Long currKey = sorted.get(i);
+			System.out.println(currKey);
+			if (sorted.get(i)>=fromDateTime.getTime()&&fromKey==0L) {
+				fromKey=i;
+			}
+
+			if (sorted.get(i)>toDateTime.getTime()&&toKey==0L) {
+				toKey=i-1;
+				break;
+			}
+			
+			if(fromKey>0 && toKey==0) {
+				Long fileToFreezeDateKey = sorted.get(i);
+				File fileToFreeze = diskSpaceProperties.getFileMap().get(fileToFreezeDateKey);
+				Long size = fileToFreeze.length();
+				diskSpaceProperties.removeFolderSize(size);
+				diskSpaceProperties.removeFileNumber(1L);
+
+				fileToFreeze.renameTo(new File(PropertiesManager.getFreezedVideoAbsoluteStorageFolder()+"//"+fileToFreeze.getName()));
+				diskSpaceProperties.getFileMap().remove(fileToFreezeDateKey);
+				
+			}
+		}
+	}
+	
 	private <T extends Comparable<? super T>> List<T> asSortedList(Collection<T> c) {
 	  List<T> list = new ArrayList<T>(c);
 	  java.util.Collections.sort(list);
