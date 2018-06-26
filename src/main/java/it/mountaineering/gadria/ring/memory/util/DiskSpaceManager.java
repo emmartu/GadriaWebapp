@@ -20,7 +20,7 @@ public class DiskSpaceManager {
 	String storageFolder;
 	Long maxDiskSpace;
 	public Long size = 0L;
-	
+
 	public DiskSpaceManager(String storageFolder, Long maxDiskSpace) {
 		this.storageFolder = storageFolder;
 		this.maxDiskSpace = maxDiskSpace;
@@ -30,15 +30,14 @@ public class DiskSpaceManager {
 		log.fine("hasEnoughMemory()");
 		File storageFile = new File(storageFolder);
 
-		if(diskSpaceProperties==null||
-		   diskSpaceProperties.getFileNumber()==0L||
-		   diskSpaceProperties.getFolderSize()==0L) {
+		if (diskSpaceProperties == null || diskSpaceProperties.getFileNumber() == 0L
+				|| diskSpaceProperties.getFolderSize() == 0L) {
 			diskSpaceProperties = getDiskSpaceProperties(storageFile);
 		}
 
 		Long safetythreshold = calculateSafetyThreshold(diskSpaceProperties);
 		Long freeSpace = maxDiskSpace - diskSpaceProperties.getFolderSize();
-		log.finer("freeSpace: "+maxDiskSpace+" - "+diskSpaceProperties.getFolderSize()+" = "+freeSpace);
+		log.finer("freeSpace: " + maxDiskSpace + " - " + diskSpaceProperties.getFolderSize() + " = " + freeSpace);
 
 		if (freeSpace >= safetythreshold) {
 			log.finer("OK --> freeSpace >= safetythreshold");
@@ -56,9 +55,9 @@ public class DiskSpaceManager {
 		Collection<Long> unsortedEpochList = diskSpaceProperties.getFileMap().keySet();
 		List<Long> sorted = asSortedList(unsortedEpochList);
 		Long firstItem = sorted.get(0);
-		log.finer("sorted time file map, first key: "+firstItem);
+		log.finer("sorted time file map, first key: " + firstItem);
 		File file = diskSpaceProperties.getFileMap().get(firstItem);
-		log.finer("sorted time file map, first file to remove: "+file.getAbsolutePath()+", size: "+file.length());
+		log.finer("sorted time file map, first file to remove: " + file.getAbsolutePath() + ", size: " + file.length());
 
 		if (file.isFile()) {
 			Long size = file.length();
@@ -66,54 +65,68 @@ public class DiskSpaceManager {
 			diskSpaceProperties.removeFileNumber(1L);
 			diskSpaceProperties.getFileMap().remove(firstItem);
 			boolean deleted = file.delete();
-			log.finer("file deleted: "+deleted);
-		}else {
-			log.warning("invalid file to remove!"+file.getName());
+			log.finer("file deleted: " + deleted);
+		} else {
+			log.warning("invalid file to remove!" + file.getName());
 		}
 	}
 
 	public void freezeFilesFromDateToDateFromMemory(Date fromDateTime, Date toDateTime) {
-		log.fine("Delete Files FromDateTime: "+fromDateTime.toString()+" toDateTime: "+toDateTime.toString()+" From Memory");
+		log.fine("Delete Files FromDateTime: " + fromDateTime.toString() + " toDateTime: " + toDateTime.toString()
+				+ " From Memory");
 
 		Collection<Long> unsortedEpochList = diskSpaceProperties.getFileMap().keySet();
 		List<Long> sorted = asSortedList(unsortedEpochList);
-		
+
 		int fromKey = 0;
 		int toKey = 0;
-		
-		Long fromLong = fromDateTime.getTime();
-		Long toLong = toDateTime.getTime();
-		
+
+		List<Long> fileToMove = new ArrayList<Long>();
+
 		for (int i = 0; i < sorted.size(); i++) {
 			Long currKey = sorted.get(i);
 			System.out.println(currKey);
-			if (sorted.get(i)>=fromDateTime.getTime()&&fromKey==0L) {
-				fromKey=i;
+			if (sorted.get(i) >= fromDateTime.getTime() && fromKey == 0L) {
+				fromKey = i;
 			}
 
-			if (sorted.get(i)>toDateTime.getTime()&&toKey==0L) {
-				toKey=i-1;
+			if (sorted.get(i) > toDateTime.getTime() && toKey == 0L) {
+				toKey = i - 1;
 				break;
 			}
-			
-			if(fromKey>0 && toKey==0) {
-				Long fileToFreezeDateKey = sorted.get(i);
-				File fileToFreeze = diskSpaceProperties.getFileMap().get(fileToFreezeDateKey);
-				Long size = fileToFreeze.length();
-				diskSpaceProperties.removeFolderSize(size);
-				diskSpaceProperties.removeFileNumber(1L);
 
-				fileToFreeze.renameTo(new File(PropertiesManager.getFreezedVideoAbsoluteStorageFolder()+"//"+fileToFreeze.getName()));
-				diskSpaceProperties.getFileMap().remove(fileToFreezeDateKey);
-				
+			if (fromKey > 0 && toKey == 0) {
+				Long fileToFreezeDateKey = sorted.get(i);
+				fileToMove.add(fileToFreezeDateKey);
 			}
 		}
+
+		freezeFiles(fileToMove);
 	}
-	
+
+	private void freezeFiles(List<Long> fileToMove) {
+		log.fine("freezeFiles");
+		for (int i = 0; i < fileToMove.size(); i++) {
+			Long fileToFreezeDateKey = fileToMove.get(i);
+
+			File fileToFreeze = diskSpaceProperties.getFileMap().get(fileToFreezeDateKey);
+			Long size = fileToFreeze.length();
+			diskSpaceProperties.removeFolderSize(size);
+			diskSpaceProperties.removeFileNumber(1L);
+
+			String fileToFreezeNewPath = PropertiesManager.getFreezedVideoAbsoluteStorageFolder() + "//" + fileToFreeze.getName();
+
+			log.fine("file to freeze path: "+fileToFreeze.getAbsolutePath()+" - new path: "+fileToFreezeNewPath);
+			
+			fileToFreeze.renameTo(new File(fileToFreezeNewPath));
+			diskSpaceProperties.getFileMap().remove(fileToFreezeDateKey);
+		}
+	}
+
 	private <T extends Comparable<? super T>> List<T> asSortedList(Collection<T> c) {
-	  List<T> list = new ArrayList<T>(c);
-	  java.util.Collections.sort(list);
-	  return list;
+		List<T> list = new ArrayList<T>(c);
+		java.util.Collections.sort(list);
+		return list;
 	}
 
 	protected Long calculateSafetyThreshold(DiskSpaceProperties diskSpaceProperties) {
@@ -121,33 +134,32 @@ public class DiskSpaceManager {
 
 		Double safetythreshold = new Double(0);
 		Double folderSize = new Double(diskSpaceProperties.getFolderSize());
-		
+
 		safetythreshold = (folderSize / diskSpaceProperties.getFileNumber());
 		Double fiftyPercent = (safetythreshold / 100) * 50;
 		safetythreshold = safetythreshold + fiftyPercent;
 
 		Long longSafetythreshold = (new Double(safetythreshold)).longValue();
-		log.finer("calculateSafetyThreshold: "+longSafetythreshold);
-		
+		log.finer("calculateSafetyThreshold: " + longSafetythreshold);
+
 		return longSafetythreshold;
 	}
 
-	
-	
 	protected DiskSpaceProperties getDiskSpaceProperties(File directory) {
 		log.info("*************  init DiskSpaceProperties  ***************");
 		DiskSpaceProperties diskSpaceFile = new DiskSpaceProperties();
 
 		for (File file : directory.listFiles()) {
 			if (file.isFile()) {
-				log.info("-- getDiskSpaceProperties -- add file: "+file+" on DiskSpaceProperties");
+				log.info("-- getDiskSpaceProperties -- add file: " + file + " on DiskSpaceProperties");
 
 				diskSpaceFile.addFolderSize(file.length());
 				diskSpaceFile.addFileNumber(1L);
-				FileWithCreationTime fileWithCreationTime = new FileWithCreationTime(file.getAbsolutePath(), getFileCreationEpoch(file));
+				FileWithCreationTime fileWithCreationTime = new FileWithCreationTime(file.getAbsolutePath(),
+						getFileCreationEpoch(file));
 				diskSpaceFile.putFileInMap(fileWithCreationTime);
 			} else {
-				log.info("-- getDiskSpaceProperties -- get subfolder properties: "+file);
+				log.info("-- getDiskSpaceProperties -- get subfolder properties: " + file);
 
 				DiskSpaceProperties diskSpaceFileTemp = getDiskSpaceProperties(file);
 				diskSpaceFile.addFolderSize(diskSpaceFileTemp.getFolderSize());
@@ -156,16 +168,19 @@ public class DiskSpaceManager {
 			}
 		}
 
-		log.info("return diskSpaceFile for folder: "+directory+" FolderSize: "+diskSpaceFile.getFolderSize()+", FileNumber: "+diskSpaceFile.getFileNumber());
+		log.info("return diskSpaceFile for folder: " + directory + " FolderSize: " + diskSpaceFile.getFolderSize()
+				+ ", FileNumber: " + diskSpaceFile.getFileNumber());
 		log.info("********  END DiskSpaceProperties  **********");
 
 		return diskSpaceFile;
 	}
 
 	public void addLatestFile(FileWithCreationTime fileWithCreationTime) {
-		log.fine("add Latest File name: "+fileWithCreationTime.getFile().getName()+", size: "+fileWithCreationTime.getFile().length()+", creation time: "+fileWithCreationTime.getCreationTime());
-		
-		if(diskSpaceProperties==null) {
+		log.fine("add Latest File name: " + fileWithCreationTime.getFile().getName() + ", size: "
+				+ fileWithCreationTime.getFile().length() + ", creation time: "
+				+ fileWithCreationTime.getCreationTime());
+
+		if (diskSpaceProperties == null) {
 			diskSpaceProperties = new DiskSpaceProperties();
 		}
 
@@ -175,7 +190,6 @@ public class DiskSpaceManager {
 		diskSpaceProperties.putFileInMap(fileWithCreationTime);
 	}
 
-	
 	private long getFileCreationEpoch(File file) {
 		try {
 			BasicFileAttributes attr = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
