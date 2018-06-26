@@ -20,7 +20,7 @@ public class FreezingVideoService {
 	
 	@GET
 	@Path("/{from}/{to}")
-	public Response getMsg(@PathParam("from") String fromDatetime, @PathParam("to") String toDatetime) {
+	public Response getVideoFromDateToDate(@PathParam("from") String fromDatetime, @PathParam("to") String toDatetime) {
  
 		String output = "from : " + fromDatetime+" --> to: "+toDatetime;
 		System.out.println("output: "+output);
@@ -36,17 +36,33 @@ public class FreezingVideoService {
 			e.printStackTrace();
 		}
 		
-		System.out.println("fromClass: "+fromDateTimeClass);
-		System.out.println("toClass: "+toDateTimeClass);
-		
 		GadriaMonitoringMain.ringMemoryMain.vlcLauncher.diskSPaceManager.freezeFilesFromDateToDateFromMemory(fromDateTimeClass, toDateTimeClass);
 
 		return Response.status(200).entity(output).build();
 	}
 
-	public static void main(String[] args) {
-		File fileToFreeze = new File("C:\\Users\\Lele\\Documents\\LavoroWebCamMobotix\\TEST\\TEST_FOLDER_VIDEO\\W1\\w1_2018-06-25@19-21-37.530.mp4");
+	
+	@GET
+	@Path("/{from}/{to}")
+	public Response getPictureFromDateToDate(@PathParam("from") String fromDatetime, @PathParam("to") String toDatetime) {
+ 
+		String output = "from : " + fromDatetime+" --> to: "+toDatetime;
+		System.out.println("output: "+output);
+ 		
+		Date fromDateTimeClass = null;
+		Date toDateTimeClass = null;
+		
+		try {
+			fromDateTimeClass = format.parse(fromDatetime);
+			toDateTimeClass = format.parse(toDatetime);
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		//GadriaMonitoringMain.ringMemoryMain.vlcLauncher.diskSPaceManager.freezeFilesFromDateToDateFromMemory(fromDateTimeClass, toDateTimeClass);
 
-		fileToFreeze.renameTo(new File("C:\\Users\\Lele\\Documents\\LavoroWebCamMobotix\\TEST\\TEST_FOLDER_FREEZED_VIDEO\\"+fileToFreeze.getName()));
+		return Response.status(200).entity(output).build();
 	}
+
 }

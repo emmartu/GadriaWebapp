@@ -81,7 +81,7 @@ public class DiskSpaceManager {
 		int fromKey = 0;
 		int toKey = 0;
 
-		List<Long> fileToMove = new ArrayList<Long>();
+		List<Long> filesToMove = new ArrayList<Long>();
 
 		for (int i = 0; i < sorted.size(); i++) {
 			Long currKey = sorted.get(i);
@@ -97,11 +97,11 @@ public class DiskSpaceManager {
 
 			if (fromKey > 0 && toKey == 0) {
 				Long fileToFreezeDateKey = sorted.get(i);
-				fileToMove.add(fileToFreezeDateKey);
+				filesToMove.add(fileToFreezeDateKey);
 			}
 		}
 
-		freezeFiles(fileToMove);
+		freezeFiles(filesToMove);
 	}
 
 	private void freezeFiles(List<Long> fileToMove) {

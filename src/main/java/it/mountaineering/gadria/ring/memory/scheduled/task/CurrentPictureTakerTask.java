@@ -23,7 +23,7 @@ import it.mountaineering.gadria.ring.memory.util.PropertiesManager;
 public class CurrentPictureTakerTask extends TimerTask {
 
 	private static final java.util.logging.Logger log = Logger.getLogger(CurrentPictureTakerTask.class.getName());
-	private static DiskSpaceManager diskSPaceManager;
+	public static DiskSpaceManager diskSPaceManager;
 	
 	{
 		diskSPaceManager = new DiskSpaceManager(PropertiesManager.getPictureAbsoluteStorageFolder(), PropertiesManager.getPictureMaxDiskSpace());
