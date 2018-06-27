@@ -1,8 +1,4 @@
-<web-app id="WebApp_ID" version="2.4"
-	xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee 
-	http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
-	<display-name>Gadria Monitoring</display-name>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" version="3.0">	<display-name>Gadria Monitoring</display-name>
 
 	<servlet>
 		<servlet-name>jersey-serlvet</servlet-name>
@@ -14,11 +10,16 @@
 		<load-on-startup>1</load-on-startup>
 	</servlet>
 
+	<servlet-mapping>
+		<servlet-name>jersey-serlvet</servlet-name>
+		<url-pattern>/rest/*</url-pattern>
+	</servlet-mapping>
+
 	<context-param> 
 	    <param-name>InstallationPath</param-name> 
 	    <param-value>C:\Users\Lele\Documents\LavoroWebCamMobotix\TEST\</param-value> 
 	</context-param> 
-
+    
 	<servlet>
   		<servlet-name>mvc-dispatcher</servlet-name>
         <servlet-class>
@@ -26,19 +27,14 @@
         </servlet-class>
         <load-on-startup>1</load-on-startup>
   	</servlet>
-  
-  	<servlet-mapping>
- 		<servlet-name>mvc-dispatcher</servlet-name>
-        <url-pattern>*.htm</url-pattern>
-  	</servlet-mapping>
 
+	<servlet-mapping>
+        <servlet-name>mvc-dispatcher</servlet-name>
+        <url-pattern>/welcome.html</url-pattern>
+        <url-pattern>*.html</url-pattern>
+    </servlet-mapping>
+    
 	<listener>
 	   <listener-class>it.mountaineering.gadria.main.GadriaMonitoringMain</listener-class>
 	</listener>
-
-	<servlet-mapping>
-		<servlet-name>jersey-serlvet</servlet-name>
-		<url-pattern>/rest/*</url-pattern>
-	</servlet-mapping>
-
 </web-app>

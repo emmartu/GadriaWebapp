@@ -1,24 +1,26 @@
 package it.mountaineering.gadria.mvc.controller;
 
-import java.io.File;
-
-import javax.servlet.http.HttpSession;
-
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.servlet.ModelAndView;
 
 @Controller
 public class MainPagesController {
 
-	@RequestMapping(value = "/resetEnvironmentPage", method = RequestMethod.GET)
-	public String resetEnvironmentPageGet(@ModelAttribute("rdfUploadFileModel") File rdfUploadFileModel, HttpSession session, ModelMap model) {
-		//sessionSetup(session);
-		
-		return "resetEnvironmentPage";
-	}
+	//@RequestMapping(value = "/test", method = RequestMethod.GET)
+	//@RequestMapping("/test")
+	//public String test() {
+	//	//sessionSetup(session);
+	//	
+	//	return "resetEnvironmentPage";
+	//}
 
+	@RequestMapping("/welcome")
+	public ModelAndView helloWorld() {
+ 
+		String message = "<br><div style='text-align:center;'>"
+				+ "<h3>********** Hello World, Spring MVC Tutorial</h3>This message is coming from CrunchifyHelloWorld.java **********</div><br><br>";
+		return new ModelAndView("welcome", "message", message);
+	}
 
 }

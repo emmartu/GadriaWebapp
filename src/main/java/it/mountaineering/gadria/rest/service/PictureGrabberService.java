@@ -34,7 +34,7 @@ public class PictureGrabberService {
 			e.printStackTrace();
 		}
 		
-		GadriaMonitoringMain.ringMemoryMain.pictureTakerLauncher.diskSPaceManager.freezeFilesFromDateToDateFromMemory(fromDateTimeClass, toDateTimeClass);
+		//GadriaMonitoringMain.ringMemoryMain.pictureTakerLauncher.diskSPaceManager.freezeFilesFromDateToDateFromMemory(fromDateTimeClass, toDateTimeClass);
 
 		return Response.status(200).entity(output).build();
 	}
