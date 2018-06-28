@@ -32,6 +32,7 @@
         <servlet-name>mvc-dispatcher</servlet-name>
         <url-pattern>/welcome.html</url-pattern>
         <url-pattern>*.html</url-pattern>
+        <url-pattern>*.jpg</url-pattern>
     </servlet-mapping>
     
 	<listener>

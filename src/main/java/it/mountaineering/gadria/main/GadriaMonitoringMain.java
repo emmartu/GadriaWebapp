@@ -1,5 +1,6 @@
 package it.mountaineering.gadria.main;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
@@ -9,6 +10,7 @@ public class GadriaMonitoringMain implements ServletContextListener {
 
 	public static RingMemoryMain ringMemoryMain;
 	public static String installationPath = "";
+	public static ServletContext servletContext;
 	
 	public GadriaMonitoringMain() {
 		ringMemoryMain = new RingMemoryMain();
@@ -17,7 +19,8 @@ public class GadriaMonitoringMain implements ServletContextListener {
 	@Override
 	public void contextInitialized(ServletContextEvent sce) {
         System.out.println("contextInitialized");
-		installationPath = sce.getServletContext().getInitParameter("InstallationPath");
+        servletContext = sce.getServletContext();
+		installationPath = servletContext.getInitParameter("InstallationPath");
         System.out.println("installationPath ==> "+installationPath);
 		ringMemoryMain.start(new String[] {installationPath});
 	}
