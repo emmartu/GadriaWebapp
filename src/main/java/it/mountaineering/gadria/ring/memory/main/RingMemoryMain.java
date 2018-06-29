@@ -44,10 +44,11 @@ public class RingMemoryMain {
     public static void start(String[] args) {
         if(!stop) {
         	installationPath = args[0]+_CONF;
-			log.info("Service is starting");
 			RingMemoryMain main = new RingMemoryMain();
 			try {
 				main.setUpLogger();
+				log.info("Service is starting");
+				log.fine("that's FINE");
 			} catch (SecurityException se) {
 	        	log.info("problem encuntered reading properties file "+se.getMessage());
 	        	RingMemoryMain.stop(new String[] {});

@@ -18,7 +18,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
-import it.mountaineering.gadria.ring.memory.util.PropertiesManager;
+import it.mountaineering.gadria.ring.memory.bean.FileWithCreationTime;
+import it.mountaineering.gadria.ring.memory.scheduled.task.CurrentPictureTakerTask;
 
 @Controller
 public class MainPagesController {
@@ -34,16 +35,16 @@ public class MainPagesController {
 	@RequestMapping(value = "/latest-image", method = RequestMethod.GET)
 	public ResponseEntity<byte[]> getImageAsResponseEntity() {
 	    HttpHeaders headers = new HttpHeaders();
-	    String pictureFolder = PropertiesManager.getPictureAbsoluteStorageFolder();
-	    InputStream in = null;
+	    FileWithCreationTime latestPictureFile = CurrentPictureTakerTask.getLatestPicture();
+	    String latestPictureFilePath = latestPictureFile.getFile().getAbsolutePath();
+	    InputStream inputStream = null;
 		try {
-			in = new BufferedInputStream(new FileInputStream("C:\\Users\\Lele\\Documents\\LavoroWebCamMobotix\\TEST\\w1_2018-06-27@19-27-44.jpg"));
+			inputStream = new BufferedInputStream(new FileInputStream(latestPictureFilePath));
 		} catch (FileNotFoundException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		
-	    byte[] media = getByteArrayImage();
+	    byte[] media = getByteArrayImage(inputStream);
 		
 		headers.setCacheControl("no-cache, no-store, must-revalidate");
 	    headers.setPragma("no-cache");
@@ -58,6 +59,18 @@ public class MainPagesController {
 	    InputStream in = getImageInputStream();
 	    response.setContentType(MediaType.IMAGE_JPEG_VALUE);
 	    IOUtils.copy(in, response.getOutputStream());
+	}
+
+	private byte[] getByteArrayImage(InputStream inputStream) {
+	    byte[] media = null;		
+	    
+	    try {
+			media = IOUtils.toByteArray(inputStream);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+	    return media;
 	}
 
 	private byte[] getByteArrayImage() {

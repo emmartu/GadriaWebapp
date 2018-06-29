@@ -33,6 +33,7 @@ public class CurrentPictureTakerTask extends TimerTask {
 	Date now;
 	private boolean hasStarted = false;
 	private static List<FileWithCreationTime> latestFileList;
+	private static boolean lock = false;
 	
 	public void run() {
 		now = new Date(); // initialize date
@@ -47,10 +48,11 @@ public class CurrentPictureTakerTask extends TimerTask {
 		for (String webcamId : enabledWebcamPropertiesMap.keySet()){
 
 			if(!latestFileList.isEmpty()) {
+				lock = true;
 				FileWithCreationTime fileWithCreationTime = latestFileList.remove(0);
 				diskSPaceManager.addLatestFile(fileWithCreationTime);
 			}
-			
+
 			if(!diskSPaceManager.hasEnoughMemory()) {
 				diskSPaceManager.deleteOldestFilesFromMemory();
 			}
@@ -82,6 +84,7 @@ public class CurrentPictureTakerTask extends TimerTask {
 
 			FileWithCreationTime fileWithCreationTime = new FileWithCreationTime(storageFileFullPath, latestFileCreationTime);
 			latestFileList.add(fileWithCreationTime);
+			lock = false;
 		}
 	}
 
@@ -129,5 +132,17 @@ public class CurrentPictureTakerTask extends TimerTask {
 
 	public void setHasStarted(boolean hasStarted) {
 		this.hasStarted = hasStarted;
+	}
+
+	public static FileWithCreationTime getLatestPicture() {
+		boolean isFileLocked = true;
+		
+		while(isFileLocked) {
+			if(lock==false) {
+				isFileLocked = false;
+			}
+		}
+		
+		return latestFileList.get(0);
 	}
 }
