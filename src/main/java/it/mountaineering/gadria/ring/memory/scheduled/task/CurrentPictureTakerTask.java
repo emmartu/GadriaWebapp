@@ -9,6 +9,7 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimerTask;
@@ -33,6 +34,7 @@ public class CurrentPictureTakerTask extends TimerTask {
 	Date now;
 	private boolean hasStarted = false;
 	private static List<FileWithCreationTime> latestFileList;
+	private static Map<String, FileWithCreationTime> latestFileMap;
 	private static boolean lock = false;
 	
 	public void run() {
@@ -40,13 +42,14 @@ public class CurrentPictureTakerTask extends TimerTask {
 		log.info("Current Picture Taker Task start! Date: "+now);
 		this.hasStarted = true;
 		initLatestFileList();
+		initLatestFileMap();
 
 		Map<String,WebcamProperty> enabledWebcamPropertiesMap = PropertiesManager.getEnabledWebcamPropertiesMap();
 
 		String pictureAbsoluteStorageFolder = PropertiesManager.getPictureAbsoluteStorageFolder();
 
 		for (String webcamId : enabledWebcamPropertiesMap.keySet()){
-
+			
 			if(!latestFileList.isEmpty()) {
 				lock = true;
 				FileWithCreationTime fileWithCreationTime = latestFileList.remove(0);
@@ -84,6 +87,7 @@ public class CurrentPictureTakerTask extends TimerTask {
 
 			FileWithCreationTime fileWithCreationTime = new FileWithCreationTime(storageFileFullPath, latestFileCreationTime);
 			latestFileList.add(fileWithCreationTime);
+			latestFileMap.put(webcamId, fileWithCreationTime);
 			lock = false;
 		}
 	}
@@ -111,6 +115,12 @@ public class CurrentPictureTakerTask extends TimerTask {
 		}
 	}
 
+	private static void initLatestFileMap() {
+		if (latestFileMap==null) {
+			latestFileMap = new HashMap<String, FileWithCreationTime>();
+		}
+	}
+
 	private String checkSlashesOnPath(String folderPath) {
 		if (!folderPath.endsWith("\\")) {
 			folderPath += "\\";
@@ -134,7 +144,7 @@ public class CurrentPictureTakerTask extends TimerTask {
 		this.hasStarted = hasStarted;
 	}
 
-	public static FileWithCreationTime getLatestPicture() {
+	public static FileWithCreationTime getLatestPicture(String webcamId) {
 		boolean isFileLocked = true;
 		
 		while(isFileLocked) {
@@ -143,6 +153,6 @@ public class CurrentPictureTakerTask extends TimerTask {
 			}
 		}
 		
-		return latestFileList.get(0);
+		return latestFileMap.get(webcamId);
 	}
 }

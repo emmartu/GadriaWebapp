@@ -71,7 +71,7 @@ public class DiskSpaceManager {
 		}
 	}
 
-	public void freezeFilesFromDateToDateFromMemory(Date fromDateTime, Date toDateTime) {
+	public List<String> freezeFilesFromDateToDateFromMemory(Date fromDateTime, Date toDateTime) {
 		log.fine("Delete Files FromDateTime: " + fromDateTime.toString() + " toDateTime: " + toDateTime.toString()
 				+ " From Memory");
 
@@ -101,11 +101,15 @@ public class DiskSpaceManager {
 			}
 		}
 
-		freezeFiles(filesToMove);
+		List<String> freezingVideoList = freezeFiles(filesToMove);
+		
+		return freezingVideoList;
 	}
 
-	private void freezeFiles(List<Long> fileToMove) {
+	private List<String> freezeFiles(List<Long> fileToMove) {
 		log.fine("freezeFiles");
+
+		List<String> freezingVideoList = new ArrayList<String>();
 		for (int i = 0; i < fileToMove.size(); i++) {
 			Long fileToFreezeDateKey = fileToMove.get(i);
 
@@ -117,10 +121,14 @@ public class DiskSpaceManager {
 			String fileToFreezeNewPath = PropertiesManager.getFreezedVideoAbsoluteStorageFolder() + "//" + fileToFreeze.getName();
 
 			log.fine("file to freeze path: "+fileToFreeze.getAbsolutePath()+" - new path: "+fileToFreezeNewPath);
-			
 			fileToFreeze.renameTo(new File(fileToFreezeNewPath));
+			File freezedfile = new File(fileToFreezeNewPath);
+			freezingVideoList.add(freezedfile.getName());
+			
 			diskSpaceProperties.getFileMap().remove(fileToFreezeDateKey);
 		}
+		
+		return freezingVideoList;
 	}
 
 	private <T extends Comparable<? super T>> List<T> asSortedList(Collection<T> c) {
@@ -197,6 +205,12 @@ public class DiskSpaceManager {
 		} catch (IOException e) {
 			throw new RuntimeException(file.getAbsolutePath(), e);
 		}
+	}
+
+	public DiskSpaceProperties getFileCounter() {
+		DiskSpaceProperties diskSpaceProperties = this.diskSpaceProperties;
+		
+		return diskSpaceProperties;		
 	}
 
 }

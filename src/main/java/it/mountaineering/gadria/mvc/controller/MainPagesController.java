@@ -14,16 +14,29 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
+import it.mountaineering.gadria.ring.memory.bean.DiskSpaceProperties;
 import it.mountaineering.gadria.ring.memory.bean.FileWithCreationTime;
 import it.mountaineering.gadria.ring.memory.scheduled.task.CurrentPictureTakerTask;
+import it.mountaineering.gadria.ring.memory.scheduled.task.VlcLauncherScheduledTask;
 
 @Controller
 public class MainPagesController {
 
+	/**
+     * Size of a byte buffer to read/write file
+     */
+    private static final int BUFFER_SIZE = 4096;
+             
+    /**
+     * Path of the file to be downloaded, relative to application's directory
+     */
+    private String filePath = "/downloads/SpringProject.zip";
+  
 	@RequestMapping("/welcome")
 	public ModelAndView helloWorld() {
  
@@ -32,10 +45,18 @@ public class MainPagesController {
 		return new ModelAndView("welcome", "message", message);
 	}
 
-	@RequestMapping(value = "/latest-image", method = RequestMethod.GET)
-	public ResponseEntity<byte[]> getImageAsResponseEntity() {
+	@RequestMapping("/download")
+	public ModelAndView download() {
+ 
+		DiskSpaceProperties diskSpaceProperties = VlcLauncherScheduledTask.diskSPaceManager.getFileCounter();
+		
+		return new ModelAndView("download", "diskSpaceProperties", diskSpaceProperties);
+	}
+	
+	@RequestMapping(value = "/latest-image/{webcamId}", method = RequestMethod.GET)
+	public ResponseEntity<byte[]> getImageAsResponseEntity(@PathVariable("webcamId") String webcamId) {
 	    HttpHeaders headers = new HttpHeaders();
-	    FileWithCreationTime latestPictureFile = CurrentPictureTakerTask.getLatestPicture();
+	    FileWithCreationTime latestPictureFile = CurrentPictureTakerTask.getLatestPicture(webcamId);
 	    String latestPictureFilePath = latestPictureFile.getFile().getAbsolutePath();
 	    InputStream inputStream = null;
 		try {
