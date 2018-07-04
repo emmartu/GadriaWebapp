@@ -1,12 +1,25 @@
 package it.mountaineering.gadria.mvc.controller;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.GenericEntity;
+import javax.ws.rs.core.Response;
 
 import org.apache.commons.io.IOUtils;
 import org.springframework.http.HttpHeaders;
@@ -17,9 +30,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
-import it.mountaineering.gadria.ring.memory.bean.DiskSpaceProperties;
 import it.mountaineering.gadria.ring.memory.bean.FileWithCreationTime;
 import it.mountaineering.gadria.ring.memory.scheduled.task.CurrentPictureTakerTask;
 import it.mountaineering.gadria.ring.memory.scheduled.task.VlcLauncherScheduledTask;
@@ -27,19 +40,11 @@ import it.mountaineering.gadria.ring.memory.scheduled.task.VlcLauncherScheduledT
 @Controller
 public class MainPagesController {
 
-	/**
-     * Size of a byte buffer to read/write file
-     */
-    private static final int BUFFER_SIZE = 4096;
-             
-    /**
-     * Path of the file to be downloaded, relative to application's directory
-     */
-    private String filePath = "/downloads/SpringProject.zip";
-  
+	public static final SimpleDateFormat format = new SimpleDateFormat("ddMMyyyyHHmm");
+
 	@RequestMapping("/welcome")
 	public ModelAndView helloWorld() {
- 
+
 		String message = "<br><div style='text-align:center;'>"
 				+ "<h3>********** Hello World, Spring MVC Tutorial</h3>This message is coming from CrunchifyHelloWorld.java **********</div><br><br>";
 		return new ModelAndView("welcome", "message", message);
@@ -47,78 +52,123 @@ public class MainPagesController {
 
 	@RequestMapping("/download")
 	public ModelAndView download() {
- 
-		DiskSpaceProperties diskSpaceProperties = VlcLauncherScheduledTask.diskSPaceManager.getFileCounter();
-		
-		return new ModelAndView("download", "diskSpaceProperties", diskSpaceProperties);
+
+		//DiskSpaceProperties diskSpaceProperties = VlcLauncherScheduledTask.diskSPaceManager.getFileCounter();
+
+		return new ModelAndView("download", "diskSpaceProperties", null);
 	}
+
+	@RequestMapping(value = "/downloadFreezed", method = RequestMethod.GET)
+	public ResponseEntity<byte[]> downloadZipFile(HttpServletRequest request,
+        HttpServletResponse response) throws IOException {
+		HttpHeaders headers = new HttpHeaders();
 	
+		File downloadZipFile = VlcLauncherScheduledTask.diskSPaceManager.getDownloadZipFile();
+		String downloadZipFilePath = downloadZipFile.getAbsolutePath();
+		InputStream inputStream = null;
+		
+		try {
+			inputStream = new BufferedInputStream(new FileInputStream(downloadZipFilePath));
+		} catch (FileNotFoundException e1) {
+			e1.printStackTrace();
+		}
+
+		byte[] media = getByteArray(inputStream);
+
+		headers.setCacheControl("no-cache, no-store, must-revalidate");
+		headers.setPragma("no-cache");
+		headers.setExpires(0);
+
+		ResponseEntity<byte[]> responseEntity = new ResponseEntity<byte[]>(media, headers, HttpStatus.OK);
+		return responseEntity;
+	}
+
 	@RequestMapping(value = "/latest-image/{webcamId}", method = RequestMethod.GET)
 	public ResponseEntity<byte[]> getImageAsResponseEntity(@PathVariable("webcamId") String webcamId) {
-	    HttpHeaders headers = new HttpHeaders();
-	    FileWithCreationTime latestPictureFile = CurrentPictureTakerTask.getLatestPicture(webcamId);
-	    String latestPictureFilePath = latestPictureFile.getFile().getAbsolutePath();
-	    InputStream inputStream = null;
+		HttpHeaders headers = new HttpHeaders();
+		FileWithCreationTime latestPictureFile = CurrentPictureTakerTask.getLatestPicture(webcamId);
+		String latestPictureFilePath = latestPictureFile.getFile().getAbsolutePath();
+		InputStream inputStream = null;
 		try {
 			inputStream = new BufferedInputStream(new FileInputStream(latestPictureFilePath));
 		} catch (FileNotFoundException e1) {
 			e1.printStackTrace();
 		}
-		
-	    byte[] media = getByteArrayImage(inputStream);
-		
+
+		byte[] media = getByteArray(inputStream);
+
 		headers.setCacheControl("no-cache, no-store, must-revalidate");
-	    headers.setPragma("no-cache");
-	    headers.setExpires(0);
-	    
-	    ResponseEntity<byte[]> responseEntity = new ResponseEntity<byte[]>(media, headers, HttpStatus.OK);
-	    return responseEntity;
-	}
-	
-	@RequestMapping(value = "/image-void-response", method = RequestMethod.GET)
-	public void getImageAsByteArray(HttpServletResponse response) throws IOException {
-	    InputStream in = getImageInputStream();
-	    response.setContentType(MediaType.IMAGE_JPEG_VALUE);
-	    IOUtils.copy(in, response.getOutputStream());
+		headers.setPragma("no-cache");
+		headers.setExpires(0);
+
+		ResponseEntity<byte[]> responseEntity = new ResponseEntity<byte[]>(media, headers, HttpStatus.OK);
+		return responseEntity;
 	}
 
-	private byte[] getByteArrayImage(InputStream inputStream) {
-	    byte[] media = null;		
-	    
-	    try {
+
+	@RequestMapping(method = RequestMethod.GET, value = "/testListC")
+	public @ResponseBody
+	void getStops(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+		List<String> strList = new ArrayList<String>();
+		strList.add("test1");
+		strList.add("test2");
+		strList.add("test3");
+		strList.add("test4");
+
+		try {
+
+			response.setContentType("application/json; charset=utf-8");
+			response.getWriter().write(strList.toString());
+		} catch (Exception e) {
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			e.printStackTrace();
+		}
+	}
+
+
+	@Path("/video/{from}/{to}")
+	@RequestMapping(method = RequestMethod.GET, value = "/freezing/video/{from}/{to}")
+	public @ResponseBody
+	void getVideoFromDateToDate(HttpServletRequest request, HttpServletResponse response, HttpSession session,
+										   @PathVariable("from") String fromDatetime, @PathVariable("to") String toDatetime) {
+
+		String output = "from : " + fromDatetime + " --> to: " + toDatetime;
+		System.out.println("output: " + output);
+
+		Date fromDateTimeClass = null;
+		Date toDateTimeClass = null;
+
+		try {
+			fromDateTimeClass = format.parse(fromDatetime);
+			toDateTimeClass = format.parse(toDatetime);
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		List<String> freezingVideoLog = VlcLauncherScheduledTask.diskSPaceManager.freezeFilesFromDateToDateFromMemory(fromDateTimeClass,
+				toDateTimeClass);
+
+		try {
+			response.setContentType("application/json; charset=utf-8");
+			response.getWriter().write(freezingVideoLog.toString());
+		} catch (Exception e) {
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			e.printStackTrace();
+		}
+	}
+
+	private byte[] getByteArray(InputStream inputStream) {
+		byte[] media = null;
+
+		try {
 			media = IOUtils.toByteArray(inputStream);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
-	    return media;
+		return media;
 	}
 
-	private byte[] getByteArrayImage() {
-	    byte[] media = null;		
-	    
-	    try {
-			InputStream in = getImageInputStream();
-			media = IOUtils.toByteArray(in);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 
-	    return media;
-	}
-
-	public InputStream getImageInputStream() {
-	    InputStream in = null;
-	    
-		try {
-			in = new BufferedInputStream(new FileInputStream("C:\\Users\\Lele\\Documents\\LavoroWebCamMobotix\\TEST\\w1_2018-06-27@19-27-44.jpg"));
-		} catch (FileNotFoundException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		
-		return in;
-	}
-	
-	
 }

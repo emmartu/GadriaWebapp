@@ -1,7 +1,12 @@
 package it.mountaineering.gadria.ring.memory.util;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
@@ -9,6 +14,10 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import org.apache.commons.io.IOUtils;
 
 import it.mountaineering.gadria.ring.memory.bean.DiskSpaceProperties;
 import it.mountaineering.gadria.ring.memory.bean.FileWithCreationTime;
@@ -16,7 +25,10 @@ import it.mountaineering.gadria.ring.memory.bean.FileWithCreationTime;
 public class DiskSpaceManager {
 
 	private static final java.util.logging.Logger log = Logger.getLogger(DiskSpaceManager.class.getName());
+	public static final String _ZIPFILE = "freezed_video_zip_file.zip";
 	private DiskSpaceProperties diskSpaceProperties;
+	public ZipOutputStream out;
+
 	String storageFolder;
 	Long maxDiskSpace;
 	public Long size = 0L;
@@ -206,11 +218,66 @@ public class DiskSpaceManager {
 			throw new RuntimeException(file.getAbsolutePath(), e);
 		}
 	}
+	
+	
+	public void addToZipFile(File file) throws IOException {
+		String installationPath = PropertiesManager.getVideoAbsoluteStorageFolder();
+		File zipFile = new File(installationPath+_ZIPFILE);
+		String zipFilePath = "VIDEO\\";
 
+		if(out==null) {
+			out = new ZipOutputStream(new FileOutputStream(zipFile));
+		}
+		
+		ZipEntry e = new ZipEntry(zipFilePath+file.getName());
+		out.putNextEntry(e);
+
+		InputStream inputStream = null;
+		try {
+			inputStream = new BufferedInputStream(new FileInputStream(file));
+		} catch (FileNotFoundException e1) {
+			e1.printStackTrace();
+		}
+
+		byte[] media = getByteArray(inputStream);
+
+		out.write(media, 0, media.length);
+	}
+
+	public byte[] getByteArray(InputStream inputStream) {
+		byte[] media = null;
+
+		try {
+			media = IOUtils.toByteArray(inputStream);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return media;
+	}
+		
 	public DiskSpaceProperties getFileCounter() {
 		DiskSpaceProperties diskSpaceProperties = this.diskSpaceProperties;
 		
 		return diskSpaceProperties;		
+	}
+
+	public File getDownloadZipFile() {
+		String freezedFilesDirPath = PropertiesManager.getFreezedVideoAbsoluteStorageFolder();
+		File freezedFilesDirectory = new File(freezedFilesDirPath);
+		
+		for (File file : freezedFilesDirectory.listFiles()) {
+			try {
+				addToZipFile(file);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		String installationPath = PropertiesManager.getVideoAbsoluteStorageFolder();
+		File zipFile = new File(installationPath+_ZIPFILE);
+		
+		return zipFile;
 	}
 
 }
