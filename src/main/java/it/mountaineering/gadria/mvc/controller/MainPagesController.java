@@ -11,6 +11,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -34,8 +35,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import it.mountaineering.gadria.ring.memory.bean.FileWithCreationTime;
+import it.mountaineering.gadria.ring.memory.bean.WebcamProperty;
 import it.mountaineering.gadria.ring.memory.scheduled.task.CurrentPictureTakerTask;
 import it.mountaineering.gadria.ring.memory.scheduled.task.VlcLauncherScheduledTask;
+import it.mountaineering.gadria.ring.memory.util.PropertiesManager;
 
 @Controller
 public class MainPagesController {
@@ -97,7 +100,7 @@ public class MainPagesController {
 
 	@RequestMapping(method = RequestMethod.GET, value = "/freezing/video/from/{from}/to/{to}")
 	public @ResponseBody
-	void getVideoFromDateToDate(HttpServletRequest request, HttpServletResponse response, HttpSession session,
+	List<String> getVideoFromDateToDate(HttpServletRequest request, HttpServletResponse response, HttpSession session,
 										   @PathVariable("from") String fromDatetime, @PathVariable("to") String toDatetime) {
 
 		String output = "from : " + fromDatetime + " --> to: " + toDatetime;
@@ -117,13 +120,32 @@ public class MainPagesController {
 		List<String> freezingVideoLog = VlcLauncherScheduledTask.diskSPaceManager.freezeFilesFromDateToDateFromMemory(fromDateTimeClass,
 				toDateTimeClass);
 
-		try {
-			response.setContentType("application/json; charset=utf-8");
-			response.getWriter().write(freezingVideoLog.toString());
-		} catch (Exception e) {
-			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			e.printStackTrace();
-		}
+		//try {
+		//	response.setContentType("application/json; charset=utf-8");
+		//	response.getWriter().write(freezingVideoLog.toString());
+		//} catch (Exception e) {
+		//	response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+		//	e.printStackTrace();
+		//}
+		
+		return freezingVideoLog;
+	}
+
+	@RequestMapping(method = RequestMethod.GET, value = "/enabled/webcams")
+	public @ResponseBody
+	Map<String, WebcamProperty> getEnabledWebcams(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+
+		Map<String, WebcamProperty> enabledWebcamPropertiesMap = PropertiesManager.getEnabledWebcamPropertiesMap();
+		
+		//try {
+		//	response.setContentType("application/json; charset=utf-8");
+		//	//response.getWriter().write(enabledWebcamPropertiesMap.toString());
+		//} catch (Exception e) {
+		//	response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+		//	e.printStackTrace();
+		//}
+		
+		return enabledWebcamPropertiesMap;
 	}
 
 	private byte[] getByteArray(InputStream inputStream) {

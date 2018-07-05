@@ -9,8 +9,6 @@ public class WebcamProperty {
 	String ip;
 	String videoRelativeStorageFolder;
 	String pictureRelativeStorageFolder;
-	String username;
-	String password;
 	
 	public String getiD() {
 		return iD;
@@ -52,23 +50,6 @@ public class WebcamProperty {
 		this.pictureRelativeStorageFolder = pictureRelativeStorageFolder;
 	}
 
-	public void setUsername(String username) {
-		this.username = username;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	
-	public String getUsername() {
-		return username;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -76,10 +57,8 @@ public class WebcamProperty {
 		result = prime * result + (enabled ? 1231 : 1237);
 		result = prime * result + ((iD == null) ? 0 : iD.hashCode());
 		result = prime * result + ((ip == null) ? 0 : ip.hashCode());
-		result = prime * result + ((password == null) ? 0 : password.hashCode());
 		result = prime * result
 				+ ((pictureRelativeStorageFolder == null) ? 0 : pictureRelativeStorageFolder.hashCode());
-		result = prime * result + ((username == null) ? 0 : username.hashCode());
 		result = prime * result + ((videoRelativeStorageFolder == null) ? 0 : videoRelativeStorageFolder.hashCode());
 		return result;
 	}
@@ -105,20 +84,10 @@ public class WebcamProperty {
 				return false;
 		} else if (!ip.equals(other.ip))
 			return false;
-		if (password == null) {
-			if (other.password != null)
-				return false;
-		} else if (!password.equals(other.password))
-			return false;
 		if (pictureRelativeStorageFolder == null) {
 			if (other.pictureRelativeStorageFolder != null)
 				return false;
 		} else if (!pictureRelativeStorageFolder.equals(other.pictureRelativeStorageFolder))
-			return false;
-		if (username == null) {
-			if (other.username != null)
-				return false;
-		} else if (!username.equals(other.username))
 			return false;
 		if (videoRelativeStorageFolder == null) {
 			if (other.videoRelativeStorageFolder != null)
@@ -126,5 +95,11 @@ public class WebcamProperty {
 		} else if (!videoRelativeStorageFolder.equals(other.videoRelativeStorageFolder))
 			return false;
 		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "WebcamProperty [iD=" + iD + ", enabled=" + enabled + ", ip=" + ip + ", videoRelativeStorageFolder="
+				+ videoRelativeStorageFolder + ", pictureRelativeStorageFolder=" + pictureRelativeStorageFolder + "]";
 	}
 }

@@ -73,7 +73,7 @@ public class VlcLauncherScheduledTask extends TimerTask {
 			try {
 				Runtime.
 				   getRuntime().
-				   exec("cmd /c start /B \"\" "+VLC_VIDEO_RECORDER_BAT+" "+webcamProperty.getiD()+" "+webcamProperty.getIp()+" "+storageFileFullPath+" "+videoLength+" \""+videoLanExePath+"\" "+webcamProperty.getUsername()+" "+webcamProperty.getPassword());
+				   exec("cmd /c start /B \"\" "+VLC_VIDEO_RECORDER_BAT+" "+webcamProperty.getiD()+" "+webcamProperty.getIp()+" "+storageFileFullPath+" "+videoLength+" \""+videoLanExePath+"\" ");
 			} catch (Exception e) {
 				log.severe("exception occurred grabbing video");
 				e.printStackTrace();
