@@ -42,19 +42,8 @@ public class MainPagesController {
 
 	public static final SimpleDateFormat format = new SimpleDateFormat("ddMMyyyyHHmm");
 
-	@RequestMapping("/welcome")
-	public ModelAndView helloWorld() {
-
-		String message = "<br><div style='text-align:center;'>"
-				+ "<h3>********** Hello World, Spring MVC Tutorial</h3>This message is coming from CrunchifyHelloWorld.java **********</div><br><br>";
-		return new ModelAndView("welcome", "message", message);
-	}
-
 	@RequestMapping("/download")
 	public ModelAndView download() {
-
-		//DiskSpaceProperties diskSpaceProperties = VlcLauncherScheduledTask.diskSPaceManager.getFileCounter();
-
 		return new ModelAndView("download", "diskSpaceProperties", null);
 	}
 
@@ -106,28 +95,7 @@ public class MainPagesController {
 	}
 
 
-	@RequestMapping(method = RequestMethod.GET, value = "/testListC")
-	public @ResponseBody
-	void getStops(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
-		List<String> strList = new ArrayList<String>();
-		strList.add("test1");
-		strList.add("test2");
-		strList.add("test3");
-		strList.add("test4");
-
-		try {
-
-			response.setContentType("application/json; charset=utf-8");
-			response.getWriter().write(strList.toString());
-		} catch (Exception e) {
-			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			e.printStackTrace();
-		}
-	}
-
-
-	@Path("/video/{from}/{to}")
-	@RequestMapping(method = RequestMethod.GET, value = "/freezing/video/{from}/{to}")
+	@RequestMapping(method = RequestMethod.GET, value = "/freezing/video/from/{from}/to/{to}")
 	public @ResponseBody
 	void getVideoFromDateToDate(HttpServletRequest request, HttpServletResponse response, HttpSession session,
 										   @PathVariable("from") String fromDatetime, @PathVariable("to") String toDatetime) {

@@ -90,24 +90,22 @@ public class DiskSpaceManager {
 		Collection<Long> unsortedEpochList = diskSpaceProperties.getFileMap().keySet();
 		List<Long> sorted = asSortedList(unsortedEpochList);
 
-		int fromKey = 0;
-		int toKey = 0;
+		int fromKey = -1;
+		int toKey = -1;
 
 		List<Long> filesToMove = new ArrayList<Long>();
 
 		for (int i = 0; i < sorted.size(); i++) {
-			Long currKey = sorted.get(i);
-			System.out.println(currKey);
-			if (sorted.get(i) >= fromDateTime.getTime() && fromKey == 0L) {
+			if (sorted.get(i) >= fromDateTime.getTime() && fromKey == -1) {
 				fromKey = i;
 			}
 
-			if (sorted.get(i) > toDateTime.getTime() && toKey == 0L) {
+			if (sorted.get(i) > toDateTime.getTime() && toKey == -1) {
 				toKey = i - 1;
 				break;
 			}
 
-			if (fromKey > 0 && toKey == 0) {
+			if (fromKey >= 0 && toKey == -1) {
 				Long fileToFreezeDateKey = sorted.get(i);
 				filesToMove.add(fileToFreezeDateKey);
 			}
@@ -274,6 +272,13 @@ public class DiskSpaceManager {
 			}
 		}
 		
+		try {
+			out.closeEntry();
+			out.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
 		String installationPath = PropertiesManager.getVideoAbsoluteStorageFolder();
 		File zipFile = new File(installationPath+_ZIPFILE);
 		
