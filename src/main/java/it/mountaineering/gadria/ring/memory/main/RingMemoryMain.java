@@ -90,7 +90,6 @@ public class RingMemoryMain {
 		PropertiesManager.setupConfigProperties();
 	}
 
-
 	private void launchVlcScheduledTasks() {
 		Long videoLength = 0L;
 		videoLength = PropertiesManager.getVideoLength();

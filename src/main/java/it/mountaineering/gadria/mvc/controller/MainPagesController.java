@@ -16,16 +16,10 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.GenericEntity;
-import javax.ws.rs.core.Response;
 
 import org.apache.commons.io.IOUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -120,14 +114,6 @@ public class MainPagesController {
 		List<String> freezingVideoLog = VlcLauncherScheduledTask.diskSPaceManager.freezeFilesFromDateToDateFromMemory(fromDateTimeClass,
 				toDateTimeClass);
 
-		//try {
-		//	response.setContentType("application/json; charset=utf-8");
-		//	response.getWriter().write(freezingVideoLog.toString());
-		//} catch (Exception e) {
-		//	response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-		//	e.printStackTrace();
-		//}
-		
 		return freezingVideoLog;
 	}
 
@@ -137,15 +123,28 @@ public class MainPagesController {
 
 		Map<String, WebcamProperty> enabledWebcamPropertiesMap = PropertiesManager.getEnabledWebcamPropertiesMap();
 		
-		//try {
-		//	response.setContentType("application/json; charset=utf-8");
-		//	//response.getWriter().write(enabledWebcamPropertiesMap.toString());
-		//} catch (Exception e) {
-		//	response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-		//	e.printStackTrace();
-		//}
-		
 		return enabledWebcamPropertiesMap;
+	}
+
+	@RequestMapping(method = RequestMethod.GET, value = "/webcamIdList")
+	public @ResponseBody
+	List<String> getWebcamIdList(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+
+		Map<String, WebcamProperty> enabledWebcamPropertiesMap = PropertiesManager.getEnabledWebcamPropertiesMap();
+		
+		List<String> webcamIdList = new ArrayList<String>();
+		webcamIdList.addAll(enabledWebcamPropertiesMap.keySet());
+
+		return webcamIdList;
+	}
+
+	@RequestMapping(method = RequestMethod.GET, value = "/pictureInterval")
+	public @ResponseBody
+	Long getPictureInterval(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+
+		Long pictureInterval = PropertiesManager.getPictureInterval();
+
+		return pictureInterval;
 	}
 
 	private byte[] getByteArray(InputStream inputStream) {
