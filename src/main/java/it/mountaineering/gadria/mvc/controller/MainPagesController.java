@@ -117,18 +117,90 @@ public class MainPagesController {
 		return freezingVideoLog;
 	}
 
-	@RequestMapping(method = RequestMethod.GET, value = "/enabled/webcams")
+	@RequestMapping(method = RequestMethod.GET, value = "/properties/videoabsolutestoragefolder")
 	public @ResponseBody
-	Map<String, WebcamProperty> getEnabledWebcams(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+	String getVideoAbsoluteStorageFolder(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
 
-		Map<String, WebcamProperty> enabledWebcamPropertiesMap = PropertiesManager.getEnabledWebcamPropertiesMap();
-		
-		return enabledWebcamPropertiesMap;
+		String videoAbsoluteStorageFolder = PropertiesManager.getVideoAbsoluteStorageFolder();
+
+		return videoAbsoluteStorageFolder;
 	}
 
-	@RequestMapping(method = RequestMethod.GET, value = "/webcamIdList")
+	@RequestMapping(method = RequestMethod.GET, value = "/properties/freezedvideoabsolutestoragefolder")
 	public @ResponseBody
-	List<String> getWebcamIdList(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+	String getFreezedVideoAbsoluteStorageFolder(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+
+		String freezedVideoAbsoluteStorageFolder = PropertiesManager.getFreezedVideoAbsoluteStorageFolder();
+		
+		return freezedVideoAbsoluteStorageFolder;
+	}
+
+	@RequestMapping(method = RequestMethod.GET, value = "/properties/videomaxdiskspace")
+	public @ResponseBody
+	Long getVideoMaxDiskSpace(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+
+		Long videoMaxDiskSpace = PropertiesManager.getVideoMaxDiskSpace();
+
+		return videoMaxDiskSpace;
+	}
+
+	@RequestMapping(method = RequestMethod.GET, value = "/properties/videolength")
+	public @ResponseBody
+	Long getVideoLength(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+
+		Long videoLength = PropertiesManager.getVideoLength();
+
+		return videoLength;
+	}
+
+	@RequestMapping(method = RequestMethod.GET, value = "/properties/overlap")
+	public @ResponseBody
+	Long getOverlap(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+
+		Long overlap = PropertiesManager.getOverlap();
+
+		return overlap;
+	}
+
+	@RequestMapping(method = RequestMethod.GET, value = "/properties/pictureinterval")
+	public @ResponseBody
+	Long getPictureInterval(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+
+		Long pictureInterval = PropertiesManager.getPictureInterval();
+
+		return pictureInterval;
+	}
+
+	@RequestMapping(method = RequestMethod.GET, value = "/properties/pictureabsolutestoragefolder")
+	public @ResponseBody
+	String getPictureAbsoluteStorageFolder(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+
+		String pictureAbsoluteStorageFolder = PropertiesManager.getPictureAbsoluteStorageFolder();
+		
+		return pictureAbsoluteStorageFolder;
+	}
+
+	@RequestMapping(method = RequestMethod.GET, value = "/properties/picturemaxdiskspace")
+	public @ResponseBody
+	Long getPictureMaxDiskSpace(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+
+		Long pictureMaxDiskSpace = PropertiesManager.getPictureMaxDiskSpace();
+
+		return pictureMaxDiskSpace;
+	}
+
+	@RequestMapping(method = RequestMethod.GET, value = "/properties/videoLanexepath")
+	public @ResponseBody
+	String getVideoLanExePath(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+
+		String videoLanExePath = PropertiesManager.getVideoLanExePath();
+		
+		return videoLanExePath;
+	}
+
+	@RequestMapping(method = RequestMethod.GET, value = "/properties/WebCams")
+	public @ResponseBody
+	List<String> getWebCams(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
 
 		Map<String, WebcamProperty> enabledWebcamPropertiesMap = PropertiesManager.getEnabledWebcamPropertiesMap();
 		
@@ -138,13 +210,25 @@ public class MainPagesController {
 		return webcamIdList;
 	}
 
-	@RequestMapping(method = RequestMethod.GET, value = "/pictureInterval")
+	@RequestMapping(method = RequestMethod.GET, value = "/properties/enabledwebcams")
 	public @ResponseBody
-	Long getPictureInterval(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+	Map<String, WebcamProperty> getEnabledWebcams(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
 
-		Long pictureInterval = PropertiesManager.getPictureInterval();
+		Map<String, WebcamProperty> enabledWebcamPropertiesMap = PropertiesManager.getEnabledWebcamPropertiesMap();
 
-		return pictureInterval;
+		return enabledWebcamPropertiesMap;
+	}
+
+	@RequestMapping(method = RequestMethod.GET, value = "/properties/webcamIdList")
+	public @ResponseBody
+	List<String> getWebcamIdList(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+
+		Map<String, WebcamProperty> enabledWebcamPropertiesMap = PropertiesManager.getEnabledWebcamPropertiesMap();
+		
+		List<String> webcamIdList = new ArrayList<String>();
+		webcamIdList.addAll(enabledWebcamPropertiesMap.keySet());
+
+		return webcamIdList;
 	}
 
 	private byte[] getByteArray(InputStream inputStream) {
