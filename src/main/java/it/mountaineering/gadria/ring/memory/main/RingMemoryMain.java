@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Timer;
+import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
@@ -48,7 +49,6 @@ public class RingMemoryMain {
 			try {
 				main.setUpLogger();
 				log.info("Service is starting");
-				log.fine("that's FINE");
 			} catch (SecurityException se) {
 	        	log.info("problem encuntered reading properties file "+se.getMessage());
 	        	RingMemoryMain.stop(new String[] {});
@@ -69,10 +69,16 @@ public class RingMemoryMain {
 				return;
 			}
 	
+			pictureTakerTimer = new Timer();
+			pictureTakerLauncher = new CurrentPictureTakerTask();
+
 			if(PropertiesManager.isPictureCaptureEnabled()) {
 				main.launchPictureTakerScheduledTasks();			
 			}
-			
+
+			vlcTimer = new Timer();
+			vlcLauncher = new VlcLauncherScheduledTask();
+
 			if(PropertiesManager.isVideoCaptureEnabled()) {
 				main.launchVlcScheduledTasks();			
 			}
@@ -82,6 +88,8 @@ public class RingMemoryMain {
 	private void setUpLogger() throws SecurityException, FileNotFoundException, IOException {
 		checkSlashesOnPath(installationPath);
         LogManager.getLogManager().readConfiguration(new FileInputStream(installationPath+LOGGING_PROPERTIES));
+        Level level = log.getLevel();
+		log.info("log level: "+level);
 	}
 	
 	private void setupProperties() throws PropertiesException {
@@ -97,8 +105,6 @@ public class RingMemoryMain {
 		
 		Long taskTimePeriod = videoLength-overlap;
 		Long millisTaskTimePeriod = 1000*taskTimePeriod;
-		vlcTimer = new Timer();
-		vlcLauncher = new VlcLauncherScheduledTask();
 		vlcTimer.schedule(vlcLauncher, 0, millisTaskTimePeriod);
 	}
 	
@@ -107,8 +113,6 @@ public class RingMemoryMain {
 		pictureInterval = PropertiesManager.getPictureInterval();
 		
 		Long millisTaskTimePeriod = 1000*pictureInterval;
-		pictureTakerTimer = new Timer();
-		pictureTakerLauncher = new CurrentPictureTakerTask();
 		pictureTakerTimer.schedule(pictureTakerLauncher, 0, millisTaskTimePeriod);
 	}
 
