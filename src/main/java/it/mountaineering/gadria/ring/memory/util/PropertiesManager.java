@@ -4,10 +4,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -19,8 +17,6 @@ import it.mountaineering.gadria.ring.memory.exception.NumberFormatPropertiesExce
 import it.mountaineering.gadria.ring.memory.exception.PropertiesException;
 import it.mountaineering.gadria.ring.memory.exception.UnreachableIpException;
 import it.mountaineering.gadria.ring.memory.exception.WebcamPropertyIDException;
-import it.mountaineering.gadria.ring.memory.util.PingIp;
-import it.mountaineering.gadria.ring.memory.util.PropertiesManager;
 
 public class PropertiesManager {
 
@@ -57,22 +53,6 @@ public class PropertiesManager {
 	private static InputStream input = null;
 	private static String installationPath = "";
 
-	// static {
-	// try {
-	// input = new FileInputStream(CONFIG_PROPERTIES);
-	// prop.load(input);
-	// } catch (IOException ex) {
-	// ex.printStackTrace();
-	// } finally {
-	// if (input != null) {
-	// try {
-	// input.close();
-	// } catch (IOException e) {
-	// e.printStackTrace();
-	// }
-	// }
-	// }
-	// }
 
 	protected static void setConfigFile(String configFile) {
 		try {
