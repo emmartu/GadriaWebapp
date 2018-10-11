@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -45,29 +46,38 @@ public class MainPagesController {
 	}
 
 	@RequestMapping(value = "/downloadFreezed", method = RequestMethod.GET)
-	public ResponseEntity<byte[]> downloadZipFile(HttpServletRequest request,
-        HttpServletResponse response) throws IOException {
-		HttpHeaders headers = new HttpHeaders();
-	
+	public void downloadZipFile(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		response.setContentType("application/zip");
+		response.setHeader("Content-Type", "application/zip");
+		
 		File downloadZipFile = VlcLauncherScheduledTask.diskSPaceManager.getDownloadZipFile();
 		String downloadZipFilePath = downloadZipFile.getAbsolutePath();
 		InputStream inputStream = null;
-		
+
 		try {
 			inputStream = new BufferedInputStream(new FileInputStream(downloadZipFilePath));
 		} catch (FileNotFoundException e1) {
 			e1.printStackTrace();
 		}
-
-		byte[] media = getByteArray(inputStream);
-
-		headers.setCacheControl("no-cache, no-store, must-revalidate");
-		headers.setPragma("no-cache");
-		headers.setExpires(0);
-
-		ResponseEntity<byte[]> responseEntity = new ResponseEntity<byte[]>(media, headers, HttpStatus.OK);
-		return responseEntity;
+		
+		OutputStream out = response.getOutputStream();
+		
+		byte[] buffer = new byte[4096];
+	
+		int numBytesRead;
+		while ((numBytesRead = inputStream.read(buffer)) > 0) {
+			out.write(buffer, 0, numBytesRead);
+		}
+		
+		try {
+			out.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		VlcLauncherScheduledTask.diskSPaceManager.deleteFreezedFiles();
 	}
+
 
 	@RequestMapping(value = "/latest-image/{webcamId}", method = RequestMethod.GET)
 	public ResponseEntity<byte[]> getImageAsResponseEntity(@PathVariable("webcamId") String webcamId) {
@@ -91,11 +101,9 @@ public class MainPagesController {
 		return responseEntity;
 	}
 
-
 	@RequestMapping(method = RequestMethod.GET, value = "/freezing/video/from/{from}/to/{to}")
-	public @ResponseBody
-	List<String> getVideoFromDateToDate(HttpServletRequest request, HttpServletResponse response, HttpSession session,
-										   @PathVariable("from") String fromDatetime, @PathVariable("to") String toDatetime) {
+	public @ResponseBody List<String> getVideoFromDateToDate(HttpServletRequest request, HttpServletResponse response,
+			HttpSession session, @PathVariable("from") String fromDatetime, @PathVariable("to") String toDatetime) {
 
 		String output = "from : " + fromDatetime + " --> to: " + toDatetime;
 		System.out.println("output: " + output);
@@ -111,15 +119,15 @@ public class MainPagesController {
 			e.printStackTrace();
 		}
 
-		List<String> freezingVideoLog = VlcLauncherScheduledTask.diskSPaceManager.freezeFilesFromDateToDateFromMemory(fromDateTimeClass,
-				toDateTimeClass);
+		List<String> freezingVideoLog = VlcLauncherScheduledTask.diskSPaceManager
+				.freezeFilesFromDateToDateFromMemory(fromDateTimeClass, toDateTimeClass);
 
 		return freezingVideoLog;
 	}
 
 	@RequestMapping(method = RequestMethod.GET, value = "/properties/videoabsolutestoragefolder")
-	public @ResponseBody
-	String getVideoAbsoluteStorageFolder(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+	public @ResponseBody String getVideoAbsoluteStorageFolder(HttpServletRequest request, HttpServletResponse response,
+			HttpSession session) {
 
 		String videoAbsoluteStorageFolder = PropertiesManager.getVideoAbsoluteStorageFolder();
 
@@ -127,17 +135,17 @@ public class MainPagesController {
 	}
 
 	@RequestMapping(method = RequestMethod.GET, value = "/properties/freezedvideoabsolutestoragefolder")
-	public @ResponseBody
-	String getFreezedVideoAbsoluteStorageFolder(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+	public @ResponseBody String getFreezedVideoAbsoluteStorageFolder(HttpServletRequest request,
+			HttpServletResponse response, HttpSession session) {
 
 		String freezedVideoAbsoluteStorageFolder = PropertiesManager.getFreezedVideoAbsoluteStorageFolder();
-		
+
 		return freezedVideoAbsoluteStorageFolder;
 	}
 
 	@RequestMapping(method = RequestMethod.GET, value = "/properties/videomaxdiskspace")
-	public @ResponseBody
-	Long getVideoMaxDiskSpace(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+	public @ResponseBody Long getVideoMaxDiskSpace(HttpServletRequest request, HttpServletResponse response,
+			HttpSession session) {
 
 		Long videoMaxDiskSpace = PropertiesManager.getVideoMaxDiskSpace();
 
@@ -145,8 +153,8 @@ public class MainPagesController {
 	}
 
 	@RequestMapping(method = RequestMethod.GET, value = "/properties/videolength")
-	public @ResponseBody
-	Long getVideoLength(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+	public @ResponseBody Long getVideoLength(HttpServletRequest request, HttpServletResponse response,
+			HttpSession session) {
 
 		Long videoLength = PropertiesManager.getVideoLength();
 
@@ -154,8 +162,8 @@ public class MainPagesController {
 	}
 
 	@RequestMapping(method = RequestMethod.GET, value = "/properties/overlap")
-	public @ResponseBody
-	Long getOverlap(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+	public @ResponseBody Long getOverlap(HttpServletRequest request, HttpServletResponse response,
+			HttpSession session) {
 
 		Long overlap = PropertiesManager.getOverlap();
 
@@ -163,8 +171,8 @@ public class MainPagesController {
 	}
 
 	@RequestMapping(method = RequestMethod.GET, value = "/properties/pictureinterval")
-	public @ResponseBody
-	Long getPictureInterval(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+	public @ResponseBody Long getPictureInterval(HttpServletRequest request, HttpServletResponse response,
+			HttpSession session) {
 
 		Long pictureInterval = PropertiesManager.getPictureInterval();
 
@@ -172,17 +180,17 @@ public class MainPagesController {
 	}
 
 	@RequestMapping(method = RequestMethod.GET, value = "/properties/pictureabsolutestoragefolder")
-	public @ResponseBody
-	String getPictureAbsoluteStorageFolder(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+	public @ResponseBody String getPictureAbsoluteStorageFolder(HttpServletRequest request,
+			HttpServletResponse response, HttpSession session) {
 
 		String pictureAbsoluteStorageFolder = PropertiesManager.getPictureAbsoluteStorageFolder();
-		
+
 		return pictureAbsoluteStorageFolder;
 	}
 
 	@RequestMapping(method = RequestMethod.GET, value = "/properties/picturemaxdiskspace")
-	public @ResponseBody
-	Long getPictureMaxDiskSpace(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+	public @ResponseBody Long getPictureMaxDiskSpace(HttpServletRequest request, HttpServletResponse response,
+			HttpSession session) {
 
 		Long pictureMaxDiskSpace = PropertiesManager.getPictureMaxDiskSpace();
 
@@ -190,20 +198,20 @@ public class MainPagesController {
 	}
 
 	@RequestMapping(method = RequestMethod.GET, value = "/properties/videoLanexepath")
-	public @ResponseBody
-	String getVideoLanExePath(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+	public @ResponseBody String getVideoLanExePath(HttpServletRequest request, HttpServletResponse response,
+			HttpSession session) {
 
 		String videoLanExePath = PropertiesManager.getVideoLanExePath();
-		
+
 		return videoLanExePath;
 	}
 
 	@RequestMapping(method = RequestMethod.GET, value = "/properties/WebCams")
-	public @ResponseBody
-	List<String> getWebCams(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+	public @ResponseBody List<String> getWebCams(HttpServletRequest request, HttpServletResponse response,
+			HttpSession session) {
 
 		Map<String, WebcamProperty> enabledWebcamPropertiesMap = PropertiesManager.getEnabledWebcamPropertiesMap();
-		
+
 		List<String> webcamIdList = new ArrayList<String>();
 		webcamIdList.addAll(enabledWebcamPropertiesMap.keySet());
 
@@ -211,8 +219,8 @@ public class MainPagesController {
 	}
 
 	@RequestMapping(method = RequestMethod.GET, value = "/properties/enabledwebcams")
-	public @ResponseBody
-	Map<String, WebcamProperty> getEnabledWebcams(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+	public @ResponseBody Map<String, WebcamProperty> getEnabledWebcams(HttpServletRequest request,
+			HttpServletResponse response, HttpSession session) {
 
 		Map<String, WebcamProperty> enabledWebcamPropertiesMap = PropertiesManager.getEnabledWebcamPropertiesMap();
 
@@ -220,11 +228,11 @@ public class MainPagesController {
 	}
 
 	@RequestMapping(method = RequestMethod.GET, value = "/properties/webcamIdList")
-	public @ResponseBody
-	List<String> getWebcamIdList(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+	public @ResponseBody List<String> getWebcamIdList(HttpServletRequest request, HttpServletResponse response,
+			HttpSession session) {
 
 		Map<String, WebcamProperty> enabledWebcamPropertiesMap = PropertiesManager.getEnabledWebcamPropertiesMap();
-		
+
 		List<String> webcamIdList = new ArrayList<String>();
 		webcamIdList.addAll(enabledWebcamPropertiesMap.keySet());
 
@@ -242,6 +250,5 @@ public class MainPagesController {
 
 		return media;
 	}
-
 
 }

@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -17,15 +18,14 @@ import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import org.apache.commons.io.IOUtils;
-
 import it.mountaineering.gadria.ring.memory.bean.DiskSpaceProperties;
 import it.mountaineering.gadria.ring.memory.bean.FileWithCreationTime;
+import it.mountaineering.gadria.ring.memory.exception.PropertiesException;
 
 public class DiskSpaceManager {
 
 	private static final java.util.logging.Logger log = Logger.getLogger(DiskSpaceManager.class.getName());
-	public static final String _ZIPFILE = "freezed_video_zip_file.zip";
+	public static final String _ZIPFILE = "freezed_videos";
 	private DiskSpaceProperties diskSpaceProperties;
 	public ZipOutputStream out;
 
@@ -218,17 +218,15 @@ public class DiskSpaceManager {
 	}
 	
 	
-	public void addToZipFile(File file) throws IOException {
-		String installationPath = PropertiesManager.getVideoAbsoluteStorageFolder();
-		File zipFile = new File(installationPath+_ZIPFILE);
+	public void addToZipFile(File zipFile, File file) throws IOException {
 		String zipFilePath = "VIDEO\\";
 
 		if(out==null) {
 			out = new ZipOutputStream(new FileOutputStream(zipFile));
 		}
 		
-		ZipEntry e = new ZipEntry(zipFilePath+file.getName());
-		out.putNextEntry(e);
+		ZipEntry zipEntry = new ZipEntry(zipFilePath+file.getName());
+		out.putNextEntry(zipEntry);
 
 		InputStream inputStream = null;
 		try {
@@ -237,36 +235,31 @@ public class DiskSpaceManager {
 			e1.printStackTrace();
 		}
 
-		byte[] media = getByteArray(inputStream);
-
-		out.write(media, 0, media.length);
-	}
-
-	public byte[] getByteArray(InputStream inputStream) {
-		byte[] media = null;
-
-		try {
-			media = IOUtils.toByteArray(inputStream);
-		} catch (IOException e) {
-			e.printStackTrace();
+    	byte[] buffer = new byte[1024];
+		
+    	int len;
+		while ((len = inputStream.read(buffer)) > 0) {
+			out.write(buffer, 0, len);
 		}
 
-		return media;
+		inputStream.close();
 	}
 		
-	public DiskSpaceProperties getFileCounter() {
-		DiskSpaceProperties diskSpaceProperties = this.diskSpaceProperties;
-		
-		return diskSpaceProperties;		
-	}
-
 	public File getDownloadZipFile() {
 		String freezedFilesDirPath = PropertiesManager.getFreezedVideoAbsoluteStorageFolder();
 		File freezedFilesDirectory = new File(freezedFilesDirPath);
+
+		String installationPath = PropertiesManager.getInstallationPath();
 		
+		String timeStamp = new SimpleDateFormat("yyyy-MM-dd@HH-mm-ss.S").format(new Date());
+		String fileName = _ZIPFILE+"_"+timeStamp+".zip";
+		File zipFile = new File(installationPath+fileName);
+
 		for (File file : freezedFilesDirectory.listFiles()) {
 			try {
-				addToZipFile(file);
+				addToZipFile(zipFile, file);
+				System.out.println("added to zip file: "+file.getName());
+
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -278,11 +271,31 @@ public class DiskSpaceManager {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
-		String installationPath = PropertiesManager.getVideoAbsoluteStorageFolder();
-		File zipFile = new File(installationPath+_ZIPFILE);
 		
 		return zipFile;
 	}
 
+	public void deleteFreezedFiles() {
+		String freezedFilesDirPath = PropertiesManager.getFreezedVideoAbsoluteStorageFolder();
+		File freezedFilesDirectory = new File(freezedFilesDirPath);
+		
+		for (File file : freezedFilesDirectory.listFiles()) {
+			boolean deleted = file.delete();
+			System.out.println("deleted: "+deleted);
+		}
+	}
+
+	public static void main(String[] args) {
+		String configFile = "C:\\Users\\Lele\\Documents\\LavoroWebCamMobotix\\TEST\\conf\\config.properties";
+		PropertiesManager.setConfigFile(configFile);
+		try {
+			PropertiesManager.setupConfigProperties();
+		} catch (PropertiesException e) {
+			e.printStackTrace();
+		}
+        
+		DiskSpaceManager dsm = new DiskSpaceManager(PropertiesManager.getVideoAbsoluteStorageFolder(), PropertiesManager.getVideoMaxDiskSpace());
+		dsm.getDownloadZipFile();
+		dsm.deleteFreezedFiles();
+	}
 }
