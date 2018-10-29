@@ -1,6 +1,10 @@
 package it.mountaineering.gadria.ring.memory.scheduled.task;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -18,10 +22,11 @@ public class VlcLauncherScheduledTask extends TimerTask {
 
 	private static final java.util.logging.Logger log = Logger.getLogger(VlcLauncherScheduledTask.class.getName());
 	private static final String VLC_VIDEO_RECORDER_BAT = PropertiesManager.getInstallationPath()+"VlcVideoRecorder.bat";
+	private static final String TEST_BAT = PropertiesManager.getInstallationPath()+"test_write_and_sleep.bat";
 	public static DiskSpaceManager diskSPaceManager;
 	
 	{
-		diskSPaceManager = new DiskSpaceManager(PropertiesManager.getVideoAbsoluteStorageFolder(), PropertiesManager.getVideoMaxDiskSpace());
+		diskSPaceManager = new DiskSpaceManager(PropertiesManager.getVideoAbsoluteStorageFolder(), PropertiesManager.getVideoMaxDiskSpace(), "Video Recorder");
 		log.info("init Vlc Launcher Scheduled Task");
 		checkMemory();		
 	}
@@ -43,7 +48,7 @@ public class VlcLauncherScheduledTask extends TimerTask {
 		videoLength = PropertiesManager.getVideoLength();
 
 		for (String webcamId : enabledWebcamPropertiesMap.keySet()){
-
+			
 			if(latestFileList.size()==2) {
 				FileWithCreationTime fileWithCreationTime = latestFileList.remove(0);
 				diskSPaceManager.addLatestFile(fileWithCreationTime);
@@ -69,11 +74,20 @@ public class VlcLauncherScheduledTask extends TimerTask {
 			long latestFileCreationTime = System.currentTimeMillis();
 			
 			String videoLanExePath = PropertiesManager.getVideoLanExePath();
+			String exec_1 = "cmd /c start /B \"\" "+VLC_VIDEO_RECORDER_BAT+" "+webcamProperty.getiD()+" "+webcamProperty.getIp()+" "+storageFileFullPath+" "+videoLength+" \""+videoLanExePath+"\" ";
+			String exec_2 = "cmd /c start /B \"\" "+TEST_BAT+" "+webcamProperty.getiD()+" "+webcamProperty.getIp()+" "+storageFileFullPath+" "+videoLength+" \""+videoLanExePath+"\" ";
 			
 			try {
-				Runtime.
+				Process proc = 
+						Runtime.
 				   getRuntime().
-				   exec("cmd /c start /B \"\" "+VLC_VIDEO_RECORDER_BAT+" "+webcamProperty.getiD()+" "+webcamProperty.getIp()+" "+storageFileFullPath+" "+videoLength+" \""+videoLanExePath+"\" ");
+				   exec(exec_1);
+				
+				StreamGobbler err = new StreamGobbler( proc.getErrorStream(), "err");
+				StreamGobbler out = new StreamGobbler( proc.getInputStream(), "out");
+				err.start();
+				out.start();
+
 			} catch (Exception e) {
 				log.severe("exception occurred grabbing video");
 				e.printStackTrace();
@@ -81,6 +95,7 @@ public class VlcLauncherScheduledTask extends TimerTask {
 
 			FileWithCreationTime fileWithCreationTime = new FileWithCreationTime(storageFileFullPath, latestFileCreationTime);
 			latestFileList.add(fileWithCreationTime);
+
 		}
 	}
 
@@ -119,3 +134,26 @@ public class VlcLauncherScheduledTask extends TimerTask {
 		this.hasStarted = hasStarted;
 	}
 }
+
+class StreamGobbler extends Thread {
+	private static final java.util.logging.Logger log = Logger.getLogger(StreamGobbler.class.getName());
+	public StreamGobbler( InputStream in, String type) {
+		this.in = in;
+		this.type = type;
+	}
+	private InputStream in;
+	private String type;
+
+	public void run() {
+		try {
+			BufferedReader reader = new BufferedReader( new InputStreamReader( in));
+			String line = null;
+			while (( line = reader.readLine()) != null) {
+				log.fine( type + ": " + line);
+			}
+		} catch ( IOException e) {
+			e.printStackTrace();
+		}
+	}
+}
+

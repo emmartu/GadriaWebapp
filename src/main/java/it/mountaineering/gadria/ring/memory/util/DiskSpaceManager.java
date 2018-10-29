@@ -32,14 +32,16 @@ public class DiskSpaceManager {
 	String storageFolder;
 	Long maxDiskSpace;
 	public Long size = 0L;
+	String type;
 
-	public DiskSpaceManager(String storageFolder, Long maxDiskSpace) {
+	public DiskSpaceManager(String storageFolder, Long maxDiskSpace, String type) {
 		this.storageFolder = storageFolder;
 		this.maxDiskSpace = maxDiskSpace;
+		this.type = type;
 	}
 
 	public boolean hasEnoughMemory() {
-		log.fine("hasEnoughMemory()");
+		log.fine("type: "+type+"hasEnoughMemory()");
 		File storageFile = new File(storageFolder);
 
 		if (diskSpaceProperties == null || diskSpaceProperties.getFileNumber() == 0L
@@ -62,7 +64,7 @@ public class DiskSpaceManager {
 	}
 
 	public void deleteOldestFilesFromMemory() {
-		log.fine("Delete Oldest Files From Memory");
+		log.fine("type: "+type+" - Delete Oldest Files From Memory");
 
 		Collection<Long> unsortedEpochList = diskSpaceProperties.getFileMap().keySet();
 		List<Long> sorted = asSortedList(unsortedEpochList);
@@ -84,7 +86,7 @@ public class DiskSpaceManager {
 	}
 
 	public List<String> freezeFilesFromDateToDateFromMemory(Date fromDateTime, Date toDateTime) {
-		log.fine("Delete Files FromDateTime: " + fromDateTime.toString() + " toDateTime: " + toDateTime.toString()
+		log.fine("type: "+type+" - Delete Files FromDateTime: " + fromDateTime.toString() + " toDateTime: " + toDateTime.toString()
 				+ " From Memory");
 
 		Collection<Long> unsortedEpochList = diskSpaceProperties.getFileMap().keySet();
@@ -117,7 +119,7 @@ public class DiskSpaceManager {
 	}
 
 	private List<String> freezeFiles(List<Long> fileToMove) {
-		log.fine("freezeFiles");
+		log.fine("type: "+type+" - freezeFiles");
 
 		List<String> freezingVideoList = new ArrayList<String>();
 		for (int i = 0; i < fileToMove.size(); i++) {
@@ -130,7 +132,7 @@ public class DiskSpaceManager {
 
 			String fileToFreezeNewPath = PropertiesManager.getFreezedVideoAbsoluteStorageFolder() + "//" + fileToFreeze.getName();
 
-			log.fine("file to freeze path: "+fileToFreeze.getAbsolutePath()+" - new path: "+fileToFreezeNewPath);
+			log.fine("type: "+type+" - file to freeze path: "+fileToFreeze.getAbsolutePath()+" - new path: "+fileToFreezeNewPath);
 			fileToFreeze.renameTo(new File(fileToFreezeNewPath));
 			File freezedfile = new File(fileToFreezeNewPath);
 			freezingVideoList.add(freezedfile.getName());
@@ -148,7 +150,7 @@ public class DiskSpaceManager {
 	}
 
 	protected Long calculateSafetyThreshold(DiskSpaceProperties diskSpaceProperties) {
-		log.fine("calculateSafetyThreshold");
+		log.fine("type: "+type+" - calculateSafetyThreshold");
 
 		Double safetythreshold = new Double(0);
 		Double folderSize = new Double(diskSpaceProperties.getFolderSize());
@@ -158,18 +160,18 @@ public class DiskSpaceManager {
 		safetythreshold = safetythreshold + fiftyPercent;
 
 		Long longSafetythreshold = (new Double(safetythreshold)).longValue();
-		log.finer("calculateSafetyThreshold: " + longSafetythreshold);
+		log.finer("type: "+type+" - calculateSafetyThreshold: " + longSafetythreshold);
 
 		return longSafetythreshold;
 	}
 
 	protected DiskSpaceProperties getDiskSpaceProperties(File directory) {
-		log.info("*************  init DiskSpaceProperties  ***************");
+		log.info("type: "+type+" - *************  init DiskSpaceProperties  ***************");
 		DiskSpaceProperties diskSpaceFile = new DiskSpaceProperties();
 
 		for (File file : directory.listFiles()) {
 			if (file.isFile()) {
-				log.info("-- getDiskSpaceProperties -- add file: " + file + " on DiskSpaceProperties");
+				log.info("type: "+type+" - -- getDiskSpaceProperties -- add file: " + file + " on DiskSpaceProperties");
 
 				diskSpaceFile.addFolderSize(file.length());
 				diskSpaceFile.addFileNumber(1L);
@@ -177,7 +179,7 @@ public class DiskSpaceManager {
 						getFileCreationEpoch(file));
 				diskSpaceFile.putFileInMap(fileWithCreationTime);
 			} else {
-				log.info("-- getDiskSpaceProperties -- get subfolder properties: " + file);
+				log.info("type: "+type+" - -- getDiskSpaceProperties -- get subfolder properties: " + file);
 
 				DiskSpaceProperties diskSpaceFileTemp = getDiskSpaceProperties(file);
 				diskSpaceFile.addFolderSize(diskSpaceFileTemp.getFolderSize());
@@ -186,9 +188,9 @@ public class DiskSpaceManager {
 			}
 		}
 
-		log.info("return diskSpaceFile for folder: " + directory + " FolderSize: " + diskSpaceFile.getFolderSize()
+		log.info("type: "+type+" - return diskSpaceFile for folder: " + directory + " FolderSize: " + diskSpaceFile.getFolderSize()
 				+ ", FileNumber: " + diskSpaceFile.getFileNumber());
-		log.info("********  END DiskSpaceProperties  **********");
+		log.info("type: "+type+" - ********  END DiskSpaceProperties  **********");
 
 		return diskSpaceFile;
 	}
@@ -294,8 +296,8 @@ public class DiskSpaceManager {
 			e.printStackTrace();
 		}
         
-		DiskSpaceManager dsm = new DiskSpaceManager(PropertiesManager.getVideoAbsoluteStorageFolder(), PropertiesManager.getVideoMaxDiskSpace());
-		dsm.getDownloadZipFile();
-		dsm.deleteFreezedFiles();
+		DiskSpaceManager dsm = new DiskSpaceManager(PropertiesManager.getVideoAbsoluteStorageFolder(), PropertiesManager.getVideoMaxDiskSpace(), "TEST");
+
+		
 	}
 }

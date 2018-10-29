@@ -27,7 +27,7 @@ public class CurrentPictureTakerTask extends TimerTask {
 	public static DiskSpaceManager diskSPaceManager;
 	
 	{
-		diskSPaceManager = new DiskSpaceManager(PropertiesManager.getPictureAbsoluteStorageFolder(), PropertiesManager.getPictureMaxDiskSpace());
+		diskSPaceManager = new DiskSpaceManager(PropertiesManager.getPictureAbsoluteStorageFolder(), PropertiesManager.getPictureMaxDiskSpace(), "Picture Taker");
 		log.info("init Current Picture Taker Task");
 	}
 	
