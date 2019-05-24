@@ -3,6 +3,7 @@ package it.mountaineering.gadria.ring.memory.bean;
 import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.PriorityQueue;
 
 
 public class DiskSpaceProperties {
@@ -10,6 +11,8 @@ public class DiskSpaceProperties {
 	Long folderSize;
 	Long fileNumber;
 	Map<Long,File> fileMap;
+    PriorityQueue<FileWithCreationTime> fileWithCreationTimeQueue = 
+            new PriorityQueue<FileWithCreationTime>(new FileWithCreationTimeComparator());
 	
 	public DiskSpaceProperties() {
 		folderSize = 0L;

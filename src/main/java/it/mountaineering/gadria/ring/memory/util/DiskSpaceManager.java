@@ -14,13 +14,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import it.mountaineering.gadria.ring.memory.bean.DiskSpaceProperties;
 import it.mountaineering.gadria.ring.memory.bean.FileWithCreationTime;
-import it.mountaineering.gadria.ring.memory.exception.PropertiesException;
 
 public class DiskSpaceManager {
 
@@ -34,6 +37,9 @@ public class DiskSpaceManager {
 	public Long size = 0L;
 	String type;
 
+	static ReadWriteLock lock = new ReentrantReadWriteLock();
+	static Lock writeLock = lock.writeLock();
+
 	public DiskSpaceManager(String storageFolder, Long maxDiskSpace, String type) {
 		this.storageFolder = storageFolder;
 		this.maxDiskSpace = maxDiskSpace;
@@ -44,7 +50,8 @@ public class DiskSpaceManager {
 		log.fine("type: "+type+"hasEnoughMemory()");
 		File storageFile = new File(storageFolder);
 
-		if (diskSpaceProperties == null || diskSpaceProperties.getFileNumber() == 0L
+		if (diskSpaceProperties == null 
+				|| diskSpaceProperties.getFileNumber() == 0L
 				|| diskSpaceProperties.getFolderSize() == 0L) {
 			diskSpaceProperties = getDiskSpaceProperties(storageFile);
 		}
@@ -81,7 +88,10 @@ public class DiskSpaceManager {
 			boolean deleted = file.delete();
 			log.finer("file deleted: " + deleted);
 		} else {
-			log.warning("invalid file to remove!" + file.getName());
+			diskSpaceProperties.removeFolderSize(size);
+			diskSpaceProperties.removeFileNumber(1L);
+			diskSpaceProperties.getFileMap().remove(firstItem);
+			log.warning("invalid real file to remove!" + file.getName() + "- logic file removed");
 		}
 	}
 
@@ -199,15 +209,22 @@ public class DiskSpaceManager {
 		log.fine("add Latest File name: " + fileWithCreationTime.getFile().getName() + ", size: "
 				+ fileWithCreationTime.getFile().length() + ", creation time: "
 				+ fileWithCreationTime.getCreationTime());
+		try {
+			writeLock.tryLock(1, TimeUnit.SECONDS);
 
-		if (diskSpaceProperties == null) {
-			diskSpaceProperties = new DiskSpaceProperties();
+			if (diskSpaceProperties == null) {
+				diskSpaceProperties = new DiskSpaceProperties();
+			}
+	
+			diskSpaceProperties.addFileNumber(1L);
+			Long size = fileWithCreationTime.getFile().length();
+			diskSpaceProperties.addFolderSize(size);
+			diskSpaceProperties.putFileInMap(fileWithCreationTime);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}finally {
+			writeLock.unlock();
 		}
-
-		diskSpaceProperties.addFileNumber(1L);
-		Long size = fileWithCreationTime.getFile().length();
-		diskSpaceProperties.addFolderSize(size);
-		diskSpaceProperties.putFileInMap(fileWithCreationTime);
 	}
 
 	private long getFileCreationEpoch(File file) {
@@ -288,16 +305,12 @@ public class DiskSpaceManager {
 	}
 
 	public static void main(String[] args) {
-		String configFile = "C:\\Users\\Lele\\Documents\\LavoroWebCamMobotix\\TEST\\conf\\config.properties";
-		PropertiesManager.setConfigFile(configFile);
-		try {
-			PropertiesManager.setupConfigProperties();
-		} catch (PropertiesException e) {
-			e.printStackTrace();
-		}
-        
-		DiskSpaceManager dsm = new DiskSpaceManager(PropertiesManager.getVideoAbsoluteStorageFolder(), PropertiesManager.getVideoMaxDiskSpace(), "TEST");
+		File file = new File("C:\\Users\\Lele\\Documents\\LavoroWebCamMobotix\\TEST\\TEST_FOLDER_VIDEO\\W2\\w2_2019-03-05@16-47-03.180.mp4");
+	
+		System.out.println("len: "+file.length());
+	
+		boolean del = file.delete();
 
-		
+		System.out.println("deleted= "+del);
 	}
 }

@@ -54,11 +54,15 @@ public class RingMemoryMain {
 	        	RingMemoryMain.stop(new String[] {});
 				return;
 			} catch (FileNotFoundException e) {
-	        	log.info("problem encuntered reading properties file "+e.getMessage());
+	        	log.info("problem encountered reading properties file "+e.getMessage());
 				e.printStackTrace();
+	        	RingMemoryMain.stop(new String[] {});
+				return;
 			} catch (IOException e) {
-	        	log.info("problem encuntered reading properties file "+e.getMessage());
+	        	log.info("problem encountered reading properties file "+e.getMessage());
 				e.printStackTrace();
+	        	RingMemoryMain.stop(new String[] {});
+				return;
 			}
 
 			try {
@@ -124,4 +128,10 @@ public class RingMemoryMain {
 		return folderPath;
 	}
 
+	
+	public static void main(String[] args) {
+		RingMemoryMain rmm = new RingMemoryMain();
+		installationPath = "C:\\Users\\Lele\\Documents\\LavoroWebCamMobotix\\TEST\\";
+		rmm.start(new String[] {installationPath});
+	}
 }

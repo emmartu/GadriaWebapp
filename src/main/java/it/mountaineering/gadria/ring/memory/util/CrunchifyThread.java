@@ -1,10 +1,7 @@
 package it.mountaineering.gadria.ring.memory.util;
 
-import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-
-import it.mountaineering.gadria.ring.memory.process.ProcessManager;
 
 public class CrunchifyThread {
 	
@@ -60,11 +57,11 @@ public class CrunchifyThread {
 class ThreadTest extends Thread {
 	String webcam_ip;
 	String webcam_id;
-	int time;
+	int videoLengthSeconds;
 	public ThreadTest(String str, String id, int time) {
 		webcam_ip = str;
 		webcam_id = id;
-		this.time = time;
+		this.videoLengthSeconds = time;
 	}
  
 	public void run() {
@@ -75,15 +72,16 @@ class ThreadTest extends Thread {
 			System.out.println("Thred name " + tName + "- id " + threadPid + " starting");
 			String storageFileFullPath = "C:\\Users\\Lele\\Documents\\LavoroWebCamMobotix\\TEST\\TEST_ONLINE_CAM\\test_"+webcam_id+"_"+webcam_ip+"_loop_"+i+".mp4";
 			//String storageFileFullPath = "C:\\Users\\Lele\\Documents\\LavoroWebCamMobotix\\TEST\\TEST_ONLINE_CAM\\test_"+webcam_id+"_"+webcam_ip+".mp4";
-			String exec_1 = "cmd /c start /B \"\" "+CrunchifyThread.VLC_VIDEO_RECORDER_BAT_1+" TEST "+webcam_ip+" "+storageFileFullPath+" "+time+" \""+CrunchifyThread.VIDEOLAN_EXE_PATH+"\" ";
+			String exec_1 = "cmd /c start /B \"\" "+CrunchifyThread.VLC_VIDEO_RECORDER_BAT_1+" TEST "+webcam_ip+" "+storageFileFullPath+" "+videoLengthSeconds+" \""+CrunchifyThread.VIDEOLAN_EXE_PATH+"\" ";
 			
 			//System.out.println("exec_1: "+exec_1);
-			try {
-				ProcessManager.createProcess(tName, CrunchifyThread.timeOut, exec_1);				
+			/*
+			 try {
+				ProcessManager.createProcess(videoLengthSeconds, exec_1, vlcLauncherBackupProperties);				
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}
+			}*/
 		}
 
 		System.out.println("Test Finished for: " + getName());

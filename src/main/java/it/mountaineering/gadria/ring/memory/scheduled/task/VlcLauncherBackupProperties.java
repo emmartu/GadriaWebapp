@@ -1,22 +1,26 @@
 package it.mountaineering.gadria.ring.memory.scheduled.task;
 
+import it.mountaineering.gadria.ring.memory.bean.FileWithCreationTime;
 import it.mountaineering.gadria.ring.memory.bean.WebcamProperty;
 import it.mountaineering.gadria.ring.memory.util.DiskSpaceManager;
 
 public class VlcLauncherBackupProperties {
+	String vlcLauncerPID;
 	WebcamProperty webcamProperty;
 	DiskSpaceManager diskSPaceManager;
-	int videoLenght;
-	int lenghtOffset;
-	int webcamId;
+	Long videoLengthSeconds;
+	Long startMillis;
+	FileWithCreationTime fileWithCreationTime;
 
-	public VlcLauncherBackupProperties(DiskSpaceManager diskSPaceManager, int videoLenght, int webcamId,
-			WebcamProperty webcamProperty, int lenghtOffset) {
+	public VlcLauncherBackupProperties(DiskSpaceManager diskSPaceManager, Long videoLengthSeconds,
+			WebcamProperty webcamProperty, Long startMillis, String vlcLauncerPID,
+			FileWithCreationTime fileWithCreationTime) {
 		this.diskSPaceManager = diskSPaceManager;
-		this.videoLenght = videoLenght;
-		this.webcamId = webcamId;
+		this.videoLengthSeconds = videoLengthSeconds;
 		this.webcamProperty = webcamProperty;
-		this.lenghtOffset = lenghtOffset;
+		this.startMillis = startMillis;
+		this.vlcLauncerPID = vlcLauncerPID;
+		this.fileWithCreationTime = fileWithCreationTime;
 	}
 
 	public DiskSpaceManager getDiskSPaceManager() {
@@ -27,20 +31,12 @@ public class VlcLauncherBackupProperties {
 		this.diskSPaceManager = diskSPaceManager;
 	}
 
-	public int getVideoLenght() {
-		return videoLenght;
+	public Long getVideoLengthSeconds() {
+		return videoLengthSeconds;
 	}
 
-	public void setVideoLenght(int videoLenght) {
-		this.videoLenght = videoLenght;
-	}
-
-	public int getWebcamId() {
-		return webcamId;
-	}
-
-	public void setWebcamId(int webcamId) {
-		this.webcamId = webcamId;
+	public void setVideoLengthSeconds(Long videoLengthSeconds) {
+		this.videoLengthSeconds = videoLengthSeconds;
 	}
 
 	public WebcamProperty getWebcamProperty() {
@@ -51,12 +47,28 @@ public class VlcLauncherBackupProperties {
 		this.webcamProperty = webcamProperty;
 	}
 
-	public int getLenghtOffset() {
-		return lenghtOffset;
+	public Long getStartMillis() {
+		return startMillis;
 	}
 
-	public void setLenghtOffset(int lenghtOffset) {
-		this.lenghtOffset = lenghtOffset;
+	public void setStartMillis(Long startMillis) {
+		this.startMillis = startMillis;
+	}
+
+	public String getVlcLauncerPID() {
+		return vlcLauncerPID;
+	}
+
+	public void setVlcLauncerPID(String vlcLauncerPID) {
+		this.vlcLauncerPID = vlcLauncerPID;
+	}
+
+	public FileWithCreationTime getFileWithCreationTime() {
+		return fileWithCreationTime;
+	}
+
+	public void setFileWithCreationTime(FileWithCreationTime fileWithCreationTime) {
+		this.fileWithCreationTime = fileWithCreationTime;
 	}
 
 }
