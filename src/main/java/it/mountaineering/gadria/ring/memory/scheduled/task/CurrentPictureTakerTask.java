@@ -57,9 +57,7 @@ public class CurrentPictureTakerTask extends TimerTask {
 			
 			if(!latestFileList.isEmpty()) {
 				lock = true;
-				FileWithCreationTime fileWithCreationTime = latestFileList.remove(0);
-				log.info("CurrentPictureTakerTask add fileWithCreationTime: "+fileWithCreationTime.getFile().getName()+" - size: "+fileWithCreationTime.getFile().length());
-				diskSPaceManager.addLatestFile(fileWithCreationTime);
+				latestFileList.remove(0);
 			}
 
 			if(!diskSPaceManager.hasEnoughMemory()) {
@@ -94,6 +92,7 @@ public class CurrentPictureTakerTask extends TimerTask {
 			FileWithCreationTime fileWithCreationTime = new FileWithCreationTime(storageFileFullPath, latestFileCreationTime);
 			latestFileList.add(fileWithCreationTime);
 			latestFileMap.put(webcamId, fileWithCreationTime);
+			diskSPaceManager.addLatestFile(fileWithCreationTime);
 			lock = false;
 		}
 	}
