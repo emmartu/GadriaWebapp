@@ -13,8 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -26,12 +24,13 @@ import it.mountaineering.gadria.ring.memory.scheduled.task.VlcLauncherBackupProp
 public class ProcessManager {
 
 	private static final java.util.logging.Logger log = Logger.getLogger(ProcessManager.class.getName());
-	private static final int checkProcessSecondsTimeout = 5;
 	private static final String TASKLIST_CMD = "tasklist.exe /FI \"IMAGENAME eq vlc*\" /fo csv /nh";
 	private static final String TASKLIST_PID_CMD = "tasklist.exe /FI ";
 	private static final String TASKLIST_PID_CMD_TAIL = " /fo csv /nh";
 	private static final CharSequence NO_TASK = "No tasks";
 	private static final String TASKKILL_CMD = "taskkill.exe /F /FI ";
+	private static final int CHECKPROCESS_DELAY = 5000;
+	private static final long CHECKPROCESS_PERIOD = 3000;
 	private static Map<String, Set<String>> processThreadNameToPidMap = new HashMap<String, Set<String>>();
 	private static Map<String, String> processPidToVlcThreadIdMap = new HashMap<String, String>();
 	private static List<String> processList = new ArrayList<String>();
@@ -40,10 +39,14 @@ public class ProcessManager {
 	static ReadWriteLock lock = new ReentrantReadWriteLock();
 	static Lock writeLock = lock.writeLock();
 
+	static ReadWriteLock cdmLineLock = new ReentrantReadWriteLock();
+	static Lock writeCdmLineLock = cdmLineLock.writeLock();
+
 	static DateFormat format = new SimpleDateFormat("HH:mm:ss");
 
 	public static void createProcess(Long videoLengthSeconds, String execString,
-			VlcLauncherBackupProperties vlcLauncherBackupProperties) throws IOException {
+			VlcLauncherBackupProperties vlcLauncherBackupProperties, int creationTimes) throws IOException {
+		log.info("createProcess processVlcNameToPidSet creationTimes: " + creationTimes);
 
 		String vlcLauncerName = vlcLauncherBackupProperties.getVlcLauncerPID();
 
@@ -52,19 +55,25 @@ public class ProcessManager {
 
 			launchCmdLineProcess(execString, vlcLauncerName);
 			Set<String> processVlcNameToPidSet = getProcessPidSetByVlcLauncherName(vlcLauncerName);
-			log.info("createProcess processVlcNameToPidSet: "+processVlcNameToPidSet.toString());
+			log.fine("createProcess processVlcNameToPidSet: " + processVlcNameToPidSet.toString());
 			String PID = getPidFromRunningProcesses();
 
-			if (PID != "") {
+			if (creationTimes > 3) {
+				log.info("creationTimes: " + creationTimes + " OVER LIMIT!");
+				return;
+			}
+
+			if (PID == "") {
+				writeLock.unlock();
+				Thread.sleep(500);
+				createProcess(videoLengthSeconds, execString, vlcLauncherBackupProperties, creationTimes++);
+			} else {
 				processVlcNameToPidSet.add(PID);
 				processPidToVlcThreadIdMap.put(PID, vlcLauncerName);
 				vlcLauncherBackupPropertiesMap.put(vlcLauncerName, vlcLauncherBackupProperties);
-				addKillProcessTask(PID, vlcLauncerName, Integer.parseInt(videoLengthSeconds.toString()));
-				
+
 				addCheckProcessTask(PID, vlcLauncherBackupProperties);
-				
-				writeLock.unlock();
-			} else {
+
 				writeLock.unlock();
 			}
 		} catch (InterruptedException e) {
@@ -73,17 +82,10 @@ public class ProcessManager {
 	}
 
 	private static void addCheckProcessTask(String pID, VlcLauncherBackupProperties vlcLauncherBackupProperties) {
-		log.info("addCheckProcessTask PID: "+pID);
+		log.fine("addCheckProcessTask PID: " + pID);
 		Timer checkProcessTimer = new Timer();
 		CheckProcessTask checkProcessTask = new CheckProcessTask(pID, vlcLauncherBackupProperties);
-		checkProcessTimer.schedule(checkProcessTask, 5000, 3000);
-	}
-
-	private static void addKillProcessTask(String PID, String vlcLauncerName, int videoLengthSeconds) {
-		log.info("addKillProcessTask PID: "+PID+" - videoLengthSeconds:"+videoLengthSeconds+" - vlcLauncerName: "+vlcLauncerName);
-		ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-		scheduler.schedule(new KillProcessTask(PID, vlcLauncerName), videoLengthSeconds + 5, TimeUnit.SECONDS);
-		scheduler.shutdown();
+		checkProcessTimer.schedule(checkProcessTask, CHECKPROCESS_DELAY, CHECKPROCESS_PERIOD);
 	}
 
 	private static Set<String> getProcessPidSetByVlcLauncherName(String vlcLauncerName) {
@@ -100,7 +102,7 @@ public class ProcessManager {
 	}
 
 	public static void launchCmdLineProcess(String execString, String vlcLauncerName) {
-		log.info("addProcess, exec: " + execString);
+		log.fine("addProcess, exec: " + execString);
 
 		Process process = null;
 		try {
@@ -120,13 +122,14 @@ public class ProcessManager {
 	}
 
 	public static void clearMap(String PID, String vlcLauncerPID) {
-		log.info("clearMap Start, vlcPID: " + vlcLauncerPID + " - PID: "+PID+" actual map: " + processThreadNameToPidMap.toString());
-		
+		log.fine("clearMap Start, vlcPID: " + vlcLauncerPID + " - PID: " + PID + " actual map: "
+				+ processThreadNameToPidMap.toString());
+
 		if (!processThreadNameToPidMap.get(vlcLauncerPID).isEmpty()
 				&& processThreadNameToPidMap.get(vlcLauncerPID).contains(PID)) {
 
 			processThreadNameToPidMap.get(vlcLauncerPID).remove(PID);
-			log.fine("clearMap vlcLauncerPID: " + vlcLauncerPID + " - PID: "+PID+" removed");
+			log.fine("clearMap vlcLauncerPID: " + vlcLauncerPID + " - PID: " + PID + " removed");
 		}
 
 		if (processThreadNameToPidMap.get(vlcLauncerPID).isEmpty()) {
@@ -139,21 +142,22 @@ public class ProcessManager {
 			log.fine("Pid to Thread map: " + processPidToVlcThreadIdMap.toString() + " to be removed");
 
 			processPidToVlcThreadIdMap.remove(PID);
-			log.fine("clearMap vlcLauncerPID: " + vlcLauncerPID + " - PID removed, map: "+processPidToVlcThreadIdMap.toString());
+			log.fine("clearMap vlcLauncerPID: " + vlcLauncerPID + " - PID removed, map: "
+					+ processPidToVlcThreadIdMap.toString());
 		}
 
-		processList.remove(PID);
-		log.info("processList: " + processList.toString());
-		log.info("clearMap end, vlcPID: " + vlcLauncerPID + " actual map: " + processThreadNameToPidMap.toString());
+		boolean procRemoved = processList.remove(PID);
+		log.fine("process: " + PID + " removed->" + procRemoved + " - actual processList: " + processList.toString());
+		log.fine("clearMap end, vlcPID: " + vlcLauncerPID + " actual map: " + processThreadNameToPidMap.toString());
 	}
 
 	public static void killPId(String vlcLauncerPID, String PID) {
-		log.info("killPId Start, vlcPID: " + vlcLauncerPID + " - PID: "+PID);
+		log.info("killPId Start, vlcPID: " + vlcLauncerPID + " - PID: " + PID);
 
 		try {
-			writeLock.tryLock(1, TimeUnit.SECONDS);
+			writeCdmLineLock.tryLock(2, TimeUnit.SECONDS);
 			String line;
-			System.out.println("Sono il processo: " + vlcLauncerPID + " ammazzo il PID: " + PID);
+			log.info("Sono il processo: " + vlcLauncerPID + " ammazzo il PID: " + PID);
 
 			Process p = Runtime.getRuntime().exec(TASKKILL_CMD + "\"PID eq " + PID + "\"");
 			BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -167,17 +171,20 @@ public class ProcessManager {
 			input.close();
 
 			clearMap(PID, vlcLauncerPID);
-			writeLock.unlock();
 		} catch (Exception err) {
 			err.printStackTrace();
+		} finally {
+			writeCdmLineLock.unlock();
 		}
 	}
 
 	public static boolean getRunningProcess(String pID) {
 
-		log.info("getRunningProcess - PID:"+pID);
+		log.fine("getRunningProcess By PID - PID:" + pID);
 
 		try {
+			writeCdmLineLock.tryLock(2, TimeUnit.SECONDS);
+			log.fine("exec_cmd:" + TASKLIST_PID_CMD + "\"PID eq " + pID + " \" " + TASKLIST_PID_CMD_TAIL);
 			String line;
 			Process p = Runtime.getRuntime()
 					.exec(TASKLIST_PID_CMD + "\"PID eq " + pID + " \" " + TASKLIST_PID_CMD_TAIL);
@@ -185,7 +192,7 @@ public class ProcessManager {
 
 			while ((line = input.readLine()) != null) {
 				if (!line.trim().equals("")) {
-					log.info("Running processes line: " + line);
+					log.fine("Running processes line: " + line);
 
 					if (!line.contains(NO_TASK)) {
 						return true;
@@ -196,14 +203,16 @@ public class ProcessManager {
 			input.close();
 		} catch (Exception err) {
 			err.printStackTrace();
+		} finally {
+			writeCdmLineLock.unlock();
 		}
 
 		return false;
 	}
 
 	public static String getPidFromRunningProcesses() {
-		log.info("getPidFromRunningProcesses");
-		log.info("processList: "+processList.toString());
+		log.fine("getPidFromRunningProcesses");
+		log.fine("processList: " + processList.toString());
 
 		String PID = "";
 		try {
@@ -213,18 +222,15 @@ public class ProcessManager {
 
 			while ((line = input.readLine()) != null) {
 				if (!line.trim().equals("")) {
-					log.info("Running processes line: " + line);
+					log.fine("Running processes line: " + line);
 					String[] processItems = null;
 
 					if (!line.contains(NO_TASK)) {
 						processItems = line.split(",");
 					}
 
-					//clearDeadProcesses(processItems[1]);
-
-					if (processItems != null &&
-						!processList.contains(processItems[1])) {
-						log.info("getPidFromRunningProcesses add new process: "+processItems[1]);
+					if (processItems != null && !processList.contains(processItems[1])) {
+						log.fine("getPidFromRunningProcesses add new process: " + processItems[1]);
 						processList.add(processItems[1]);
 						return processItems[1];
 					}
@@ -237,29 +243,6 @@ public class ProcessManager {
 		}
 
 		return PID;
-	}
-
-	private static void clearDeadProcesses(String deadProcessPid) {
-		log.info("clearDeadProcesses deadProcessPid: "+deadProcessPid);
-		if (processList.contains(deadProcessPid)) {
-			String vlcProcessId = processPidToVlcThreadIdMap.get(deadProcessPid);
-			processThreadNameToPidMap.get(vlcProcessId).remove(deadProcessPid);
-			processPidToVlcThreadIdMap.remove(deadProcessPid);
-			processList.remove(deadProcessPid);
-		}
-	}
-
-	/*
-	 * public static void clearMap() {
-	 * 
-	 * for (String pid : processPidMap.keySet()) { Map<String, Integer>
-	 * processMap = processPidMap.get(pid);
-	 * 
-	 * if (processMap.isEmpty()) { processPidMap.remove(pid); } } }
-	 */
-
-	public static void main(String[] args) {
-		// killPId("1820");
 	}
 
 }
@@ -280,8 +263,10 @@ class StreamGobbler extends Thread {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(in));
 			String line = null;
 			while ((line = reader.readLine()) != null) {
-				//log.info(type + ": " + line);
+				// log.info(type + ": " + line);
 			}
+
+			this.in.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

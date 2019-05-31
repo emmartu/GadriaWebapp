@@ -48,11 +48,17 @@ public class CurrentPictureTakerTask extends TimerTask {
 
 		String pictureAbsoluteStorageFolder = PropertiesManager.getPictureAbsoluteStorageFolder();
 
+		int fileAddLimit = enabledWebcamPropertiesMap.keySet().size();
+		if(enabledWebcamPropertiesMap.keySet().size()==1) {
+			fileAddLimit = 2;
+		}
+
 		for (String webcamId : enabledWebcamPropertiesMap.keySet()){
 			
 			if(!latestFileList.isEmpty()) {
 				lock = true;
 				FileWithCreationTime fileWithCreationTime = latestFileList.remove(0);
+				log.info("CurrentPictureTakerTask add fileWithCreationTime: "+fileWithCreationTime.getFile().getName()+" - size: "+fileWithCreationTime.getFile().length());
 				diskSPaceManager.addLatestFile(fileWithCreationTime);
 			}
 
