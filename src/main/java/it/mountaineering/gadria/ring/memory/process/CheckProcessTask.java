@@ -137,7 +137,7 @@ public class CheckProcessTask extends TimerTask {
 		Long fileSizeLimit = pastSecondsFromStart * UNDERSIZED_FILE_LIMIT_PER_SECONDS;
 		log.fine("isStreamUnderSized fileSizeLimit:" + fileSizeLimit + " - Stream file size:" + streamFile.length());
 
-		if ((streamFile.length() > 0 && streamFile.length() < fileSizeLimit)
+		if ((streamFile.length() > 0 && streamFile.length() < fileSizeLimit && streamFile.length() != 40)
 				|| (streamFile.length() == 0 && pastSecondsFromStart > 20L)) {
 			return true;
 		}

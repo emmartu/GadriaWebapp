@@ -48,11 +48,6 @@ public class CurrentPictureTakerTask extends TimerTask {
 
 		String pictureAbsoluteStorageFolder = PropertiesManager.getPictureAbsoluteStorageFolder();
 
-		int fileAddLimit = enabledWebcamPropertiesMap.keySet().size();
-		if(enabledWebcamPropertiesMap.keySet().size()==1) {
-			fileAddLimit = 2;
-		}
-
 		for (String webcamId : enabledWebcamPropertiesMap.keySet()){
 			
 			if(!latestFileList.isEmpty()) {
