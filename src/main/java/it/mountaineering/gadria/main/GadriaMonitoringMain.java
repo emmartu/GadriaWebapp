@@ -27,7 +27,9 @@ public class GadriaMonitoringMain implements ServletContextListener {
 
 	@Override
 	public void contextDestroyed(ServletContextEvent sce) {
+		ringMemoryMain.vlcTimer.purge();
 		ringMemoryMain.vlcTimer.cancel();
+		ringMemoryMain.pictureTakerTimer.purge();		
 		ringMemoryMain.pictureTakerTimer.cancel();		
 	}
 }

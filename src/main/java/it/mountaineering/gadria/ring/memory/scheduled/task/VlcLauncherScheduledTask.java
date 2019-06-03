@@ -49,7 +49,7 @@ public class VlcLauncherScheduledTask extends TimerTask {
 
 		for (String webcamId : enabledWebcamPropertiesMap.keySet()){
 			
-			if(latestFileList.size()==2) {
+			if(latestFileList.size()== enabledWebcamPropertiesMap.keySet().size()) {
 				FileWithCreationTime fileWithCreationTime = latestFileList.remove(0);
 				diskSPaceManager.addLatestFile(fileWithCreationTime);
 
@@ -72,17 +72,17 @@ public class VlcLauncherScheduledTask extends TimerTask {
 			String storageFileFullPath = absoluteStorageFolder + relativeStorageFolder + fileName;
 
 			long latestFileCreationTime = System.currentTimeMillis();
-			
+
 			String videoLanExePath = PropertiesManager.getVideoLanExePath();
 			String exec_1 = "cmd /c start /B \"\" "+VLC_VIDEO_RECORDER_BAT+" "+webcamProperty.getiD()+" "+webcamProperty.getIp()+" "+storageFileFullPath+" "+videoLength+" \""+videoLanExePath+"\" ";
 			String exec_2 = "cmd /c start /B \"\" "+TEST_BAT+" "+webcamProperty.getiD()+" "+webcamProperty.getIp()+" "+storageFileFullPath+" "+videoLength+" \""+videoLanExePath+"\" ";
-			
+
 			try {
 				Process proc = 
 						Runtime.
 				   getRuntime().
 				   exec(exec_1);
-				
+
 				StreamGobbler err = new StreamGobbler( proc.getErrorStream(), "err");
 				StreamGobbler out = new StreamGobbler( proc.getInputStream(), "out");
 				err.start();
@@ -137,10 +137,12 @@ public class VlcLauncherScheduledTask extends TimerTask {
 
 class StreamGobbler extends Thread {
 	private static final java.util.logging.Logger log = Logger.getLogger(StreamGobbler.class.getName());
+	
 	public StreamGobbler( InputStream in, String type) {
 		this.in = in;
 		this.type = type;
 	}
+	
 	private InputStream in;
 	private String type;
 
@@ -156,4 +158,3 @@ class StreamGobbler extends Thread {
 		}
 	}
 }
-

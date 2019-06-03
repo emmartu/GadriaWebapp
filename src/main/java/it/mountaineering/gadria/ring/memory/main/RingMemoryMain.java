@@ -106,6 +106,7 @@ public class RingMemoryMain {
 		Long taskTimePeriod = videoLength-overlap;
 		Long millisTaskTimePeriod = 1000*taskTimePeriod;
 		vlcTimer.schedule(vlcLauncher, 0, millisTaskTimePeriod);
+		vlcTimer.purge();
 	}
 	
 	private void launchPictureTakerScheduledTasks() {
@@ -114,6 +115,7 @@ public class RingMemoryMain {
 		
 		Long millisTaskTimePeriod = 1000*pictureInterval;
 		pictureTakerTimer.schedule(pictureTakerLauncher, 0, millisTaskTimePeriod);
+		pictureTakerTimer.purge();
 	}
 
 	private String checkSlashesOnPath(String folderPath) {
@@ -124,4 +126,10 @@ public class RingMemoryMain {
 		return folderPath;
 	}
 
+	
+	public static void main(String[] args) {
+		RingMemoryMain rmm = new RingMemoryMain();
+		installationPath = "C:\\Users\\Lele\\Documents\\LavoroWebCamMobotix\\TEST\\";
+		rmm.start(new String[] {installationPath});
+	}
 }
