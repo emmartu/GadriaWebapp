@@ -15,6 +15,7 @@ import it.mountaineering.gadria.ring.memory.bean.FileWithCreationTime;
 import it.mountaineering.gadria.ring.memory.scheduled.task.VlcLauncherBackupProperties;
 import it.mountaineering.gadria.ring.memory.util.DiskSpaceManager;
 import it.mountaineering.gadria.ring.memory.util.ExecStringBuilder;
+import it.mountaineering.gadria.ring.memory.util.PropertiesManager;
 
 public class CheckProcessTask extends TimerTask {
 
@@ -57,17 +58,28 @@ public class CheckProcessTask extends TimerTask {
 
 	@Override
 	public void run() {
+		boolean isRunning = ProcessManager.getRunningProcess(PID);
 		Date date = new Date();
 		Long actualTimeMillis = date.getTime();
-		boolean isRunning = ProcessManager.getRunningProcess(PID);
 		log.fine("CheckProcessTask - PID:" + PID + " - isRunning: " + isRunning);
 
 		if (isProcessOverEndTime(actualTimeMillis)) {
 			log.fine("isProcessOverEndTimed true! - PID:" + PID);
 
 			if (isRunning) {
-				ProcessManager.killPId(vlcLauncherBackupProperties.getVlcLauncerPID(), PID);
+				Long pastSecondsFromStart = getPastSecondsFromStart(actualTimeMillis);
+				Long offset =  PropertiesManager.getVideoLength()+20L;
+				if (pastSecondsFromStart > offset) {
+					log.info("isProcessOverEndTimed true! isRunning true! And pastSecs: "+pastSecondsFromStart+" > len+20: "+offset+" - PID:" + PID + " - filename: "
+							+ vlcLauncherBackupProperties.getFileWithCreationTime().getFile().getName());
+					ProcessManager.killPId(vlcLauncherBackupProperties.getVlcLauncerPID(), PID);
+				}else {
+					return;
+				}
+
 			}else {
+				log.info("isProcessOverEndTimed true! isRunning false!- PID:" + PID + " - filename: "
+						+ vlcLauncherBackupProperties.getFileWithCreationTime().getFile().getName());
 				ProcessManager.clearMap(PID, vlcLauncherBackupProperties.getVlcLauncerPID());
 			}
 
@@ -126,7 +138,7 @@ public class CheckProcessTask extends TimerTask {
 			e.printStackTrace();
 		}
 
-		log.info("CheckProcessTask !Running - new process created - PID:" + PID + " - cancel!");
+		log.fine("CheckProcessTask !Running - new process created - PID:" + PID + " - cancel!");
 	}
 
 	private boolean isStreamUnderSized(long actualTimeMillis) {
@@ -153,16 +165,5 @@ public class CheckProcessTask extends TimerTask {
 
 		return isOverEndTime;
 	}
-	
-	
-	public static void main(String[] args) {
-		Long endTimeMillis = 1559294831330L;
-		Long actualTimeMillis = 1559294833519L;
-		int cmp = Long.compare(endTimeMillis, actualTimeMillis);
-		System.out.println("cmp: "+cmp);
-		
-		boolean bcmp = cmp < 0;
-		
-		System.out.println("bcmp: "+bcmp);
-	}
+
 }

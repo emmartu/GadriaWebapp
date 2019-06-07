@@ -28,6 +28,7 @@ public class ProcessManager {
 	private static final String TASKLIST_PID_CMD = "tasklist.exe /FI ";
 	private static final String TASKLIST_PID_CMD_TAIL = " /fo csv /nh";
 	private static final CharSequence NO_TASK = "No tasks";
+	private static final CharSequence NO_TASK_IT = "nessuna attivit";
 	private static final String TASKKILL_CMD = "taskkill.exe /F /FI ";
 	private static final int CHECKPROCESS_DELAY = 5000;
 	private static final long CHECKPROCESS_PERIOD = 3000;
@@ -102,7 +103,7 @@ public class ProcessManager {
 	}
 
 	public static void launchCmdLineProcess(String execString, String vlcLauncerName) {
-		log.fine("addProcess, exec: " + execString);
+		log.info("addProcess, exec: " + execString);
 
 		Process process = null;
 		try {
@@ -122,7 +123,7 @@ public class ProcessManager {
 	}
 
 	public static void clearMap(String PID, String vlcLauncerPID) {
-		log.fine("clearMap Start, vlcPID: " + vlcLauncerPID + " - PID: " + PID + " actual map: "
+		log.info("clearMap Start, vlcPID: " + vlcLauncerPID + " - PID: " + PID + " actual map: "
 				+ processThreadNameToPidMap.toString());
 
 		if (!processThreadNameToPidMap.get(vlcLauncerPID).isEmpty()
@@ -147,8 +148,8 @@ public class ProcessManager {
 		}
 
 		boolean procRemoved = processList.remove(PID);
-		log.fine("process: " + PID + " removed->" + procRemoved + " - actual processList: " + processList.toString());
-		log.fine("clearMap end, vlcPID: " + vlcLauncerPID + " actual map: " + processThreadNameToPidMap.toString());
+		log.info("process: " + PID + " removed->" + procRemoved + " - actual processList: " + processList.toString());
+		log.info("clearMap end, vlcPID: " + vlcLauncerPID + " actual map: " + processThreadNameToPidMap.toString());
 	}
 
 	public static void killPId(String vlcLauncerPID, String PID) {
@@ -164,7 +165,7 @@ public class ProcessManager {
 
 			while ((line = input.readLine()) != null) {
 				if (!line.trim().equals("")) {
-					log.info("Running processes line: " + line);
+					log.fine("Running processes line: " + line);
 				}
 			}
 
@@ -194,8 +195,9 @@ public class ProcessManager {
 				if (!line.trim().equals("")) {
 					log.fine("Running processes line: " + line);
 
-					if (!line.contains(NO_TASK)) {
-						return true;
+					if (line.contains(NO_TASK)||
+						line.contains(NO_TASK_IT)) {
+						return false;
 					}
 				}
 			}
@@ -207,12 +209,11 @@ public class ProcessManager {
 			writeCdmLineLock.unlock();
 		}
 
-		return false;
+		return true;
 	}
 
 	public static String getPidFromRunningProcesses() {
-		log.fine("getPidFromRunningProcesses");
-		log.fine("processList: " + processList.toString());
+		log.info("getPidFromRunningProcesses processList: " + processList.toString());
 
 		String PID = "";
 		try {
@@ -263,7 +264,7 @@ class StreamGobbler extends Thread {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(in));
 			String line = null;
 			while ((line = reader.readLine()) != null) {
-				// log.info(type + ": " + line);
+				log.fine(type + ": " + line);
 			}
 
 			this.in.close();
